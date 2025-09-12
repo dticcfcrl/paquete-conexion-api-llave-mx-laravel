@@ -1,5 +1,5 @@
 {
-  "name": "cfcrl/llavemx-tools",
+  "name": "dticcfcrl/paquete-conexion-api-llave-mx-laravel",
   "description": "Libreria para la implementación de LlaveMX para Laravel",
   "type": "library",
   "keywords": [
