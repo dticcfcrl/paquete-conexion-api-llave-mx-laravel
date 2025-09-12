@@ -16,8 +16,6 @@ El presente paquete dticcfcrl/paquete-conexion-api-llave-mx-laravel se encuentra
 ```    
 config/
 src/
-tests/
-vendor/
 ```
 
 ## Instalación
