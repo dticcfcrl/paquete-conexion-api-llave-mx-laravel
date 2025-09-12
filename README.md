@@ -9,7 +9,7 @@ Paquete del Centro Federal de Conciliación y Registros Laborales (CFCRL) para i
 - Laravel ^7.0 | ^8.0 | ^9.0 | ^10.0
 - PHP ^7.0 | ^8.0
 
-## Structure
+## Estructura
 
 El presente paquete dticcfcrl/paquete-conexion-api-llave-mx-laravel se encuentra integrado de los siguientes directorios:
 
