@@ -1,0 +1,28 @@
+@extends('layouts.app')
+
+@section('content')
+
+    <div class="container mt-5 mb-5">
+
+        @include('layouts.messages')
+
+        <div class="row justify-content-center">
+            <div class="col-md-7">
+                <h2 class="title-llavemx">Seleccione su cuenta de ingreso</h2>
+                <div class="separador-llavemx"><span></span></div>
+            </div>
+            <div class="row text-center justify-content-center">
+                @foreach($users as $key => $user)
+                <div class="card mb-3 mr-1 ml-1 col-4 btn-llavemx" style="cursor: pointer;" 
+                     onclick="location.href='{{ route('llavemx.loginSelector', ['hash_user_id' => llaveMXEncryptString($user->id)]) }}'">
+                    <div class="card-body">
+                        <img src="{{ asset('images/user_llaveMX.png') }}" style="width: 80px;">
+                        <h5 class="card-title">{{ $user->email }}</h5>
+                        <p class="card-text" style="position: absolute; bottom: 10px; left: 0%; width: 100%;"><small><small>{{ $user->roles->pluck('show_name')->first() }}</small></small></p>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+@endsection

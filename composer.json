@@ -1,0 +1,37 @@
+{
+  "name": "cfcrl/llavemx-tools",
+  "description": "Libreria para la implementación de LlaveMX para Laravel",
+  "type": "library",
+  "keywords": [
+    "LlaveMX",
+    "Laravel"
+  ],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Jorge Ceyca",
+      "email": "jorge.ceyca@centrolaboral.gob.mx"
+    }
+  ],
+  "require": {
+    "php": "^7.0||^8.0",
+    "laravel/framework": "^7.0||^8.0||^9.0||^10.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "LlaveMX\\IntegrationTools\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "files": [
+        "app/Helpers/llavemx.php"
+    ]
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "LlaveMX\\IntegrationTools\\IntegrationToolsServiceProvider"
+      ]
+    }
+  }
+}
