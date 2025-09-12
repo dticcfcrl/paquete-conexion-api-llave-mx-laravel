@@ -2,8 +2,12 @@
   "name": "dticcfcrl/paquete-conexion-api-llave-mx-laravel",
   "description": "Libreria para la implementación de LlaveMX para Laravel",
   "type": "library",
-  "keywords": [
+  "keywords": [ 
     "LlaveMX",
+    "CFCRL",
+    "Integración",
+    "API",
+    "Web",
     "Laravel"
   ],
   "license": "MIT",
