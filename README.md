@@ -42,7 +42,7 @@ El proceso de instalación coloca en los directorios de vistas, controladores, m
 - Paso 4:  `@include('llavemx.partials.login')` Ajustar la vista de login (resources/views/auth/login.blade.php) para cortar el login viejo e incluir el partial login de llavemx
 - Paso 4:  El login viejo colocarlo en la vista login_old de llavemx (resources/views/llavemx/partials/login_old.blade.php)
 - Paso 5:  Ajustar el header para mostrar la opción de cambiar de usuario si se detecta que tiene varios roles en las vistas admin_header (resources/view/layouts/admin_header.blade.php) y header (resources/view/layouts/header.blade.php)
-`
+``` bash
 @if (Cookie::get('j7pk19') !== null)
     <a class="dropdown-item-custom" id="custon-selector" href="{{ route('llavemx.selector') }}">
         <svg xmlns="http://www.w3.org/2000/svg" width="24"
@@ -57,7 +57,7 @@ El proceso de instalación coloca en los directorios de vistas, controladores, m
         Cambiar de cuenta
     </a>
 @endif
-`
+```
 
 ## Seguridad
 
