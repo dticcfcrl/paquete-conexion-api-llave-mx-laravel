@@ -22,12 +22,26 @@ vendor/
 
 ## Instalación
 
+Modificar el composer.json del proyecto y añadir el repositorio del paquete DTICCFCRL/paquete-conexion-api-llave-mx-laravel para poder instalarlo con composer
+``` bash
+    ...
+    "repositories": [
+    {
+        "type": "vcs",
+        "url": "git@github.com:dticcfcrl/paquete-conexion-api-llave-mx-laravel.git"
+    }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
+```
+
 Via Composer
 ``` bash
 $ composer require dticcfcrl/paquete-conexion-api-llave-mx-laravel:v0.1.1
 ```
 
-si requiere remover el paquete
+Si requiere remover el paquete
 ``` bash
 $ composer remove dticcfcrl/paquete-conexion-api-llave-mx-laravel
 ```
