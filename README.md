@@ -1,6 +1,6 @@
-# CFCRL/LlaveMX-tools
+# DTICCFCRL/paquete-conexion-api-llave-mx-laravel
 
-Paquete CFCRL para integración de aplicaciones Web con LlaveMX.
+Paquete del Centro Federal de Conciliación y Registros Laborales (CFCRL) para integración en aplicaciones Web al servicio de autentificación  LlaveMX.
 
 ## Info
 
@@ -11,7 +11,7 @@ Paquete CFCRL para integración de aplicaciones Web con LlaveMX.
 
 ## Structure
 
-El presente paquete cfcrl/llavemx-tools se encuentra integrado de los siguientes directorios:
+El presente paquete dticcfcrl/paquete-conexion-api-llave-mx-laravel se encuentra integrado de los siguientes directorios:
 
 ```    
 config/
@@ -24,12 +24,12 @@ vendor/
 
 Via Composer
 ``` bash
-$ composer require cfcrl/llavemx-tools
+$ composer require dticcfcrl/paquete-conexion-api-llave-mx-laravel:v0.1.1
 ```
 
 si requiere remover el paquete
 ``` bash
-$ composer remove cfcrl/llavemx-tools
+$ composer remove dticcfcrl/paquete-conexion-api-llave-mx-laravel
 ```
 
 El proceso de instalación coloca en los directorios de vistas, controladores, modelos, migraciones, rutas, helpers y services archivos de la funcionalidad de LlaveMX. Si procede a desinstalar estos no serán removidos por lo que deberá eliminarlos manualmente.

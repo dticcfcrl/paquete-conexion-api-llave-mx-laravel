@@ -100,7 +100,13 @@ class IntegrationToolsServiceProvider extends ServiceProvider
      *          $this->token = $token->token;
      *      }
      *  }
-     */   
+     */
+
+    public function register()
+    {
+        // lógica de registro
+    }
+
 
     public function boot()
     {
