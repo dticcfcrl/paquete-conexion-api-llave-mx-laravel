@@ -125,42 +125,45 @@ class IntegrationToolsServiceProvider extends ServiceProvider
     }
 
     private function integrateFiles(){
-        //Helpers
-        $source = __DIR__.'/app/Helpers';
-        $destination = base_path('app/Helpers');
-        (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
-        //Controllers
-        $source = __DIR__.'/app/Http/Controllers';
-        $destination = base_path('app/Http/Controllers');
-        (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
-        //Models
-        $source = __DIR__.'/app/Models';
-        $destination = base_path('app/Models');
-        (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
-        //Services
-        $source = __DIR__.'/app/Services';
-        $destination = base_path('app/Services');
-        (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
-        //Migrations
-        $source = __DIR__.'/database/migrations';   
-        $destination = base_path('database/migrations');
-        (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
-        //Public assets
-        $source = __DIR__.'/public/images';
-        $destination = base_path('public/images');
-        (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
-        //Views
-        $source = __DIR__.'/resources/views';
-        $destination = resource_path('views');
-        (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
-        //SASS
-        $source = __DIR__.'/resources/sass';
-        $destination = resource_path('sass');
-        (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
-        //Routes
-        $source = __DIR__.'/routes';
-        $destination = base_path('routes');
-        (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
+        $helper_llavemx = base_path('app/Helpers/llavemx.php');
+        if (!file_exists($helper_llavemx)) {
+            //Helpers
+            $source = __DIR__.'/app/Helpers';
+            $destination = base_path('app/Helpers');
+            (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
+            //Controllers
+            $source = __DIR__.'/app/Http/Controllers';
+            $destination = base_path('app/Http/Controllers');
+            (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
+            //Models
+            $source = __DIR__.'/app/Models';
+            $destination = base_path('app/Models');
+            (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
+            //Services
+            $source = __DIR__.'/app/Services';
+            $destination = base_path('app/Services');
+            (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
+            //Migrations
+            $source = __DIR__.'/database/migrations';   
+            $destination = base_path('database/migrations');
+            (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
+            //Public assets
+            $source = __DIR__.'/public/images';
+            $destination = base_path('public/images');
+            (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
+            //Views
+            $source = __DIR__.'/resources/views';
+            $destination = resource_path('views');
+            (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
+            //SASS
+            $source = __DIR__.'/resources/sass';
+            $destination = resource_path('sass');
+            (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
+            //Routes
+            $source = __DIR__.'/routes';
+            $destination = base_path('routes');
+            (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
+        }
     }
 
     private function registerPublishing()
