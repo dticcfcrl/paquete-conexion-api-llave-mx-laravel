@@ -4,18 +4,128 @@ namespace App\Services;
 
 use GuzzleHttp\Client;
 use Carbon\Carbon;
-use Auth;
+use Exception;
 use Illuminate\Support\Facades\{Log};
+use App\Models\{AccessToken};
 
 class LlaveMXService
 {
     private $http;
     private $url;
+    private $url_core;
+    private $token_core;
 
     public function __construct()
     {
         $this->http = new Client();
         $this->url = env('LLAVE_ENDPOINT');
+        $this->url_core = config('services.login_services.core_api_url');
+        //Seteamos el token para acceder al core
+        $this->token_core = $this->getTokenCore();
+    }
+
+    private function getTokenCore()
+    {
+        $token = '';
+        $access_token = AccessToken::whereServicio('core-usuarios')->first();
+        if (!$access_token || Carbon::now()->diffInHours($access_token->updated_at) > 2) {
+            try{
+                $response = $this->http->post($this->url_core . 'oauth/token', [
+                    'form_params'       => [
+                        'client_id'         => config('services.login_services.client_id'),
+                        'client_secret'     => config('services.login_services.client_secret'),
+                        'scope'             => '*',
+                        'grant_type'        => 'client_credentials'
+                    ],
+                    'verify' => env('LLAVE_VERIFY_SSL', true)
+                ]);
+                $result = json_decode((string)$response->getBody(), true);
+                if (!isset($result['access_token'])) {
+                    return ['code_error' => 401, 'messages' => ['token' => 'error al generar el token']];
+                }
+                $formato = AccessToken::updateOrCreate(
+                    ['servicio' => 'core-usuarios'],
+                    [
+                        'servicio'  => 'core-usuarios',
+                        'token'     => $result['access_token'],
+                    ]
+                );
+                $token = $result['access_token'];
+            } catch (Exception $e) {
+                $token = '';
+            }
+        } else {
+            $token = $access_token->token;
+        }
+        return $token;
+    }
+
+    /**
+     * Guardar la información del usuario en el CORE
+     */
+    public function storeDataAtCore($data_user, $data_morales)
+    {
+        error_log('     + storeDataAtCore()');
+        $data = false;
+        if(isset($data)){
+            //Solicitar el core el almacenamiento del usuario
+            try {
+                $csrf_token = csrf_token();
+                $response = $this->http->post($this->url_core.'api/llavemx/store-data', [
+                    'headers' => [
+                        'Accept'        => 'application/json',
+                        'Authorization' => 'Bearer '.$this->token_core
+                    ],
+                    'form_params' => [
+                        '_token' => $csrf_token,
+                        'user' => $data_user,
+                        'personas_morales' => $data_morales
+                    ],
+                    'verify' => env('LLAVE_VERIFY_SSL', true)
+                ]);
+                $data = json_decode((string)$response->getBody(), true);
+
+                error_log('data: '.print_r($data,true));
+
+                //Si viene un message ocurrio un error al guardar los datos del usuario en el core
+                if (isset($data['message'])) $data = false;
+            }catch(Exception $e) {
+                $data = false;
+            }
+        }
+        return $data;
+    }
+
+    /**
+     * Buscar la información del usuario en el CORE
+     */
+    public function searchUsersAtCore($data_user){
+        $data = false;
+        if(isset($data)){
+            try {
+                $csrf_token = csrf_token();
+                $response = $this->http->post($this->url_core.'api/llavemx/search-user', [
+                    'headers' => [
+                        'Accept'        => 'application/json',
+                        'Authorization' => 'Bearer '.$this->token_core
+                    ],
+                    'form_params' => [
+                        '_token' => $csrf_token,
+                        'curp' => $data_user['curp'],
+                        'correo' => $data_user['correo'],
+                        'nombre' => $data_user['nombre'],
+                        'primerApellido' => $data_user['primerApellido'],
+                        'segundoApellido' => $data_user['segundoApellido']
+                    ],
+                    'verify' => env('LLAVE_VERIFY_SSL', true)
+                ]);
+                $data = json_decode((string)$response->getBody(), true);
+                if (isset($data['message'])) $data = false;
+            }catch(Exception $e) {
+                $data = false;
+            }
+        }
+        return $data;
     }
 
     /**
@@ -40,20 +150,9 @@ class LlaveMXService
                 ],
             ]);
             $token = json_decode((string)$response->getBody(), true);
-            if(!isset($token['accessToken']))
-                return false;
-
+            if(!isset($token['accessToken'])) return false;
             return $token['accessToken'];
-        }catch(\GuzzleHttp\Exception\ClientException $e) {
-            Log::error('ClientException en getToken(): '.$e->getMessage());
-            return false;
-        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
-            Log::error('BadResponseException en getToken(): '.$e->getMessage());
-            return false;
-        } catch (\Exception $e) {
-            Log::error('Exception en getToken(): '.$e->getMessage());
-            return false;
-        }
+        }catch(\GuzzleHttp\Exception\ClientException $e) {} catch (\GuzzleHttp\Exception\BadResponseException $e) {} catch (\Exception $e) {}
         return false;
     }
 
@@ -70,15 +169,29 @@ class LlaveMXService
                 ]
             ]);
             return json_decode((string)$response->getBody(), true);
+        }catch(\GuzzleHttp\Exception\ClientException $e) {} catch (\GuzzleHttp\Exception\BadResponseException $e) {} catch (\Exception $e) {}
+        return false;
+    }
+
+    /**
+     * Recuperar la información de las personas morales vinculadas al usuario con el token
+     */
+    public function getPersonasMorales($token)
+    {
+        try {
+            $response = $this->http->get($this->url.env('LLAVE_ENDPOINT_GETMORALES'), [
+                'auth' => [env('LLAVE_BASICAUTH_USER'), env('LLAVE_BASICAUTH_PASSWORD')],
+                'headers' => [
+                    'accessToken' => $token
+                ]
+            ]);
+            return json_decode((string)$response->getBody(), true);
         }catch(\GuzzleHttp\Exception\ClientException $e) {
-            Log::error('ClientException en getUser(): '.$e->getMessage());
-            return false;
+            //Log::error('ClientException en getUser(): '.$e->getMessage());
         } catch (\GuzzleHttp\Exception\BadResponseException $e) {
-            Log::error('BadResponseException en getUser(): '.$e->getMessage());
-            return false;
+            //Log::error('BadResponseException en getUser(): '.$e->getMessage());
         } catch (\Exception $e) {
-            Log::error('Exception en getUser(): '.$e->getMessage());
-            return false;
+            //Log::error('Exception en getUser(): '.$e->getMessage());
         }
         return false;
     }

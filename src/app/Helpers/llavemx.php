@@ -11,7 +11,6 @@ if (!function_exists('llaveMXGeneraState')){
   function llaveMXGeneraState($length = 65){
     $state = Str::random(64);
     Cookie::queue('state_csrf', $state, 1440);
-    \App\Models\LlaveMXState::create(['application_return' => url('/').'/llavemx/login', 'state' => $state, 'is_used' => false]);
     return $state;
   }
 }

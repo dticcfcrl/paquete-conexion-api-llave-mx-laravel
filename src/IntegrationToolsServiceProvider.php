@@ -135,17 +135,19 @@ class IntegrationToolsServiceProvider extends ServiceProvider
             $source = __DIR__.'/app/Http/Controllers';
             $destination = base_path('app/Http/Controllers');
             (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
+            /*
             //Models
             $source = __DIR__.'/app/Models';
             $destination = base_path('app/Models');
             (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
-            //Services
-            $source = __DIR__.'/app/Services';
-            $destination = base_path('app/Services');
-            (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
             //Migrations
             $source = __DIR__.'/database/migrations';   
             $destination = base_path('database/migrations');
+            (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
+            */
+            //Services
+            $source = __DIR__.'/app/Services';
+            $destination = base_path('app/Services');
             (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
             //Public assets
             $source = __DIR__.'/public/images';
@@ -177,6 +179,7 @@ class IntegrationToolsServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__.'/resources/sass' => base_path('resources/sass'),
             ], 'llavemx-sass');
+            /*
             //Publicando las migraciones
             $this->publishes([
                 __DIR__.'/database/migrations' => base_path('database/migrations'),
@@ -185,6 +188,7 @@ class IntegrationToolsServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__.'/app/Models' => base_path('app/Models'),
             ], 'llavemx-models');
+            */
             //Publicando los servicios
             $this->publishes([
                 __DIR__.'/app/Services' => base_path('app/Services'),
@@ -210,16 +214,6 @@ class IntegrationToolsServiceProvider extends ServiceProvider
             ->middleware('web')
             ->namespace('App\Http\Controllers')
             ->group(base_path('routes/llavemx.php'));
-        /*
-        Route::middleware('llavemx')
-            ->namespace('LlaveMX\IntegrationTools\Http\Controllers')
-            ->prefix('llavemx')
-            ->group(function () {
-                //Route::get('/login', [LlaveMXController::class, 'login'])->name('llavemx.login');
-                Route::get('/callback', 'LlaveMXController@callback')->name('llavemx.callback');
-                Route::get('/logout', 'LlaveMXController@logout')->name('llavemx.logout');
-            });
-        */
     }
 
     protected function addEnvData()
@@ -231,19 +225,19 @@ class IntegrationToolsServiceProvider extends ServiceProvider
 
         $envContent = file_get_contents($envPath);
         $vars = [
+            'LLAVE_APP_NAME' => '',
             'LLAVE_CLIENT_ID' => '',
             'LLAVE_SECRET_CODE' => '',
             'LLAVE_BASICAUTH_USER' => '',
             'LLAVE_BASICAUTH_PASSWORD' => '',
-            'LLAVE_URL_REDIRECT' => 'http://registrolocal.centrolaboral.gob.mx/llavemx/callback',
+            'LLAVE_URL_REDIRECT' => 'http://[MIAPP].centrolaboral.gob.mx/llavemx/callback',
             'LLAVE_ENDPOINT' => 'https://val-llave.infotec.mx/',
             'LLAVE_VIEJO_LOGIN_DATE' => '2025-08-01',
-            'LLAVE_VIEJO_LOGIN_SOLICITANTE' => 'true',
-            'LLAVE_VIEJO_LOGIN_FUNCIONARIO' => 'true',
             'LLAVE_ENDPOINT_LOGIN' => 'oauth.xhtml',
             'LLAVE_ENDPOINT_GETTOKEN' => 'ws/rest/oauth/obtenerToken',
             'LLAVE_ENDPOINT_GETUSER' => 'ws/rest/oauth/datosUsuario',
             'LLAVE_ENDPOINT_GETROLES' => 'ws/rest/oauth/getRolesUsuarioLogueado',
+            'LLAVE_ENDPOINT_GETMORALES' => 'ws/rest/perfil/moral',
             'LLAVE_ENDPOINT_LOGOUT' => 'ws/rest/oauth/cerrarSesion',
             'LLAVE_ENDPOINT_CREATEACCOUNT' => 'RegistroCiudadano.xhtml',
         ];

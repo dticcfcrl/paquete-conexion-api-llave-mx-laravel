@@ -1,3 +1,21 @@
+    <div class="row justify-content-center">
+        <form id="form-login-stps" method="POST" action="{{ route('login.store') }}">
+            @csrf
+            <div class="row">
+                <!-- MAPA -->
+                <div class="col-lg-8 col-md-12 d-none d-md-block container-login">
+                    <h1>Entidades federativas</h1>
+                    <div class="text-numeral mb-3">
+{{--                        <span class="numero">01</span>--}}
+{{--                        <p class="texto"><span>A partir del <b>03 de noviembre</b> esta Plataforma, recibirá trámites a nivel nacional.</span></p>--}}
+                    </div>
+                    <img src="{{ asset('images/mapa-textos2021.svg') }}">
+                    <div class="text-numeral">
+                        <span class="numero">01</span>
+                        <!-- <p class="texto"><span>Si no está vigente visita la página web del <a href="https://centrolaboral.gob.mx/" target="_blank">Centro Federal de Conciliación y Registro Laboral</a> o la de la <a href="https://www.gob.mx/stps"  target="_blank">Secretaría del Trabajo y Previsión Social</a> para conocer en que momento transitará al nuevo sistema de justicia laboral</span> </p> -->
+                         <p class="texto"><span>Si es la primera vez que entras, revisa nuestro apartado multimedia o visualiza los <b>videos</b> disponibles en cada trámite.</span> </p>
+                     </div>
+                </div>
                 <div class="col-lg-4 col-md-12 continer-login-form">
                     <h2 class="titulo-seccion">Iniciar sesión</h2>
                     <div class="separador"><span></span></div>
@@ -53,3 +71,6 @@
                         </button>
                     </div>
                 </div>
+            </div>
+        </form>
+    </div>

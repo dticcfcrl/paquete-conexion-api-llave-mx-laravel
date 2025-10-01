@@ -36,7 +36,7 @@ Modificar el composer.json del proyecto y añadir el repositorio del paquete DTI
 
 Via Composer
 ``` bash
-$ composer require dticcfcrl/paquete-conexion-api-llave-mx-laravel:v0.1.2
+$ composer require dticcfcrl/paquete-conexion-api-llave-mx-laravel:v0.2.0
 ```
 
 Si requiere remover el paquete
@@ -70,7 +70,24 @@ El proceso de instalación coloca en los directorios de vistas, controladores, m
     </a>
 @endif
 ```
-
+- Paso 6:  Modificar el controller ApiLlaveMXController (app/Http/Controller/ApiLlaveMXController.php) revisando y corrigiendo la query de búsqueda de usuarios acorde a la estructura del proyecto así como la sección de rutas acorde al rol una vez que se ha autentificado el usuario, para facilar
+**Nota:** Para facilitar la edición del controller busque los comentarios que indicar "MODIFICAR:".
+``` bash
+    /*
+    * MODIFICAR:
+    * Ajustar segun estructura de usuarios del sistema
+    */
+    $data = DB::select("SELECT u.id as user_id
+                        FROM public.users u
+                        WHERE (UPPER(u.email) = UPPER(?) OR UPPER(u.curp) = UPPER(?) OR 
+                            (
+                                unaccent(UPPER(u.first_name)) = unaccent(UPPER(?)) AND 
+                                unaccent(UPPER(u.last_name)) = unaccent(UPPER(?)) AND 
+                                unaccent(UPPER(u.second_last_name)) = unaccent(UPPER(?))
+                            )
+                            )",
+                        [$correo, $curp, $nombre, $apellido1, $apellido2]);
+```
 ## Seguridad
 
 Si descubre alguna vulnerabilidad o fallo de seguridad, favor de enviar un email a jorge.ceyca@centrolaboral.gob.mx para su atención y seguimiento.
