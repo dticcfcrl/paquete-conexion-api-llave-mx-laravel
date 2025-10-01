@@ -71,7 +71,7 @@ El proceso de instalación coloca en los directorios de vistas, controladores, m
 @endif
 ```
 - Paso 6:  Modificar el controller ApiLlaveMXController (app/Http/Controller/ApiLlaveMXController.php) revisando y corrigiendo la query de búsqueda de usuarios acorde a la estructura del proyecto así como la sección de rutas acorde al rol una vez que se ha autentificado el usuario, para facilar
-**Nota:** Para facilitar la edición del controller busque los comentarios que indicar "MODIFICAR:".
+> **Nota:** Para facilitar la edición del controller busque los comentarios que indicar "MODIFICAR:".
 ``` bash
     /*
     * MODIFICAR:
