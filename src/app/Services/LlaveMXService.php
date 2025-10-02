@@ -65,7 +65,6 @@ class LlaveMXService
      */
     public function storeDataAtCore($data_user, $data_morales)
     {
-        error_log('     + storeDataAtCore()');
         $data = false;
         if(isset($data)){
             //Solicitar el core el almacenamiento del usuario
@@ -84,9 +83,6 @@ class LlaveMXService
                     'verify' => env('LLAVE_VERIFY_SSL', true)
                 ]);
                 $data = json_decode((string)$response->getBody(), true);
-
-                error_log('data: '.print_r($data,true));
-
                 //Si viene un message ocurrio un error al guardar los datos del usuario en el core
                 if (isset($data['message'])) $data = false;
             }catch(Exception $e) {

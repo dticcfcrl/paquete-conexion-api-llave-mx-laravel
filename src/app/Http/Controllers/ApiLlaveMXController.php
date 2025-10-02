@@ -165,8 +165,8 @@ class ApiLlaveMXController extends Controller
                 'last_name' => $apellido1,
                 'second_last_name' => $apellido2,
                 'email' => $correo,
-                'user_core_id' => isset($core_user)?$core_user->id:null,
-                'token_session' => isset($core_user)?$core_user->token_session:null
+                'user_core_id' => isset($core_user)?@$core_user['id']:null,
+                'token_session' => isset($core_user)?@$core_user['token_session']:null
             ];
             $user = User::create($data_user);
             $role = Role::where('name', $role_name)->first();
