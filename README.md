@@ -4,7 +4,6 @@ Paquete del Centro Federal de Conciliación y Registros Laborales (CFCRL) para i
 
 ## Info
 
-- [Documentación Servicios](https://documenter.getpostman.com/view/10617529/U16htS86).
 - [Repositorio Github](https://github.com/dticcfcrl/paquete-conexion-api-llave-mx-laravel).
 - Laravel ^7.0 | ^8.0 | ^9.0 | ^10.0
 - PHP ^7.0 | ^8.0
@@ -20,7 +19,8 @@ src/
 
 ## Instalación
 
-Modificar el composer.json del proyecto y añadir el repositorio del paquete DTICCFCRL/paquete-conexion-api-llave-mx-laravel para poder instalarlo con composer
+Modificar el composer.json del proyecto y añadir el repositorio del paquete DTICCFCRL/paquete-conexion-api-llave-mx-laravel para poder instalarlo mediante composer.
+> **Nota:** Revise si ya tenia previamente la defición "minimum-stability", si es así solo deje una con el valor "dev".
 ``` bash
     ...
     "repositories": [
@@ -33,26 +33,24 @@ Modificar el composer.json del proyecto y añadir el repositorio del paquete DTI
     "prefer-stable": true
 }
 ```
-
-Via Composer
+Instalando el paquete LlaveMX via Composer
 ``` bash
 $ composer require dticcfcrl/paquete-conexion-api-llave-mx-laravel:v0.2.0
 ```
 
-Si requiere remover el paquete
+Si requiere remover el paquete ejecute 
 ``` bash
 $ composer remove dticcfcrl/paquete-conexion-api-llave-mx-laravel
 ```
-
-El proceso de instalación coloca en los directorios de vistas, controladores, modelos, migraciones, rutas, helpers y services archivos de la funcionalidad de LlaveMX. Si procede a desinstalar estos no serán removidos por lo que deberá eliminarlos manualmente.
+> **Nota:** El proceso de instalación coloca en los directorios de vistas, controladores, rutas, helpers y services archivos de la funcionalidad de LlaveMX preconstruida. Si procede a desinstalar estos no serán removidos por lo que deberá eliminarlos manualmente.
 
 ## Uso
 
-- Paso 1:  `npm run build` Ejecutar el comando de compilación de assets
-- Paso 2:  `php artisan config:clear` Ajustar las variables .env (LLAVE_XXXX) y limpiar la cache
-- Paso 3:  `@include('llavemx.partials.login')` Ajustar la vista de login (resources/views/auth/login.blade.php) para cortar el login viejo e incluir el partial login de llavemx
-- Paso 4:  El login viejo colocarlo en la vista login_old de llavemx (resources/views/llavemx/partials/login_old.blade.php)
-- Paso 5:  Ajustar el header para mostrar la opción de cambiar de usuario si se detecta que tiene varios roles en las vistas admin_header (resources/view/layouts/admin_header.blade.php) y header (resources/view/layouts/header.blade.php)
+- Paso 1:  `npm run build` Ejecutar el comando de compilación de assets dado que el paquete integra una hoja de estilos que ya a sido añadida (resources/sass/app.scss).
+- Paso 2:  `php artisan config:clear` Ajustar las variables .env (LLAVE_XXXX) y limpiar la cache.
+- Paso 3:  `@include('llavemx.partials.login')` Ajustar la vista de login (resources/views/auth/login.blade.php) para cortar el login viejo e incluir el partial al login de LlaveMX.
+- Paso 4:  El login viejo colocarlo en la vista login_old de LlaveMX (resources/views/llavemx/partials/login_old.blade.php).
+- Paso 5:  Ajustar el header para mostrar la opción de cambiar de usuario si se detecta que tiene varios roles en las vistas admin_header (resources/view/layouts/admin_header.blade.php) y header (resources/view/layouts/header.blade.php).
 ``` bash
 @if (Cookie::get('j7pk19') !== null)
     <a class="dropdown-item-custom" id="custon-selector" href="{{ route('llavemx.selector') }}">
@@ -69,7 +67,7 @@ El proceso de instalación coloca en los directorios de vistas, controladores, m
     </a>
 @endif
 ```
-- Paso 6:  Modificar el controller ApiLlaveMXController (app/Http/Controller/ApiLlaveMXController.php) revisando y corrigiendo la query de búsqueda de usuarios acorde a la estructura del proyecto así como la sección de rutas acorde al rol una vez que se ha autentificado el usuario, para facilar
+- Paso 6:  Modificar el controller ApiLlaveMXController (app/Http/Controller/ApiLlaveMXController.php) revisando y corrigiendo la query de búsqueda de usuarios acorde a la estructura de seguridad del proyecto así como la sección de rutas acorde al rol una vez que se ha autentificado el usuario.
 > **Nota:** Para facilitar la edición del controller busque los comentarios que indican "MODIFICAR:".
 ``` bash
     /*
