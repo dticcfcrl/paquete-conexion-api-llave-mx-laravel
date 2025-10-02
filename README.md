@@ -46,7 +46,7 @@ composer remove dticcfcrl/paquete-conexion-api-llave-mx-laravel
 
 ## Uso
 
-- Paso 1:  `npm run build` Ejecutar el comando de compilación de assets dado que el paquete integra una hoja de estilos que ya a sido añadida (resources/sass/app.scss).
+- Paso 1:  `npm run build` Ejecutar el comando de compilación del proyecto dado que el paquete integra una hoja de estilos que ya a sido añadida (resources/sass/app.scss).
 - Paso 2:  `php artisan config:clear` Ajustar las variables .env (LLAVE_XXXX) y limpiar la cache.
 - Paso 3:  `@include('llavemx.partials.login')` Ajustar la vista de login (resources/views/auth/login.blade.php) para cortar el login viejo e incluir el partial al login de LlaveMX.
 - Paso 4:  El login viejo colocarlo en la vista login_old de LlaveMX (resources/views/llavemx/partials/login_old.blade.php).
