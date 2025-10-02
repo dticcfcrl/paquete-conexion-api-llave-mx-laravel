@@ -35,12 +35,12 @@ Modificar el composer.json del proyecto y añadir el repositorio del paquete DTI
 ```
 Instalando el paquete LlaveMX via Composer
 ``` bash
-$ composer require dticcfcrl/paquete-conexion-api-llave-mx-laravel:v0.2.0
+composer require dticcfcrl/paquete-conexion-api-llave-mx-laravel:v0.2.0
 ```
 
 Si requiere remover el paquete ejecute 
 ``` bash
-$ composer remove dticcfcrl/paquete-conexion-api-llave-mx-laravel
+composer remove dticcfcrl/paquete-conexion-api-llave-mx-laravel
 ```
 > **Nota:** El proceso de instalación coloca en los directorios de vistas, controladores, rutas, helpers y services archivos de la funcionalidad de LlaveMX preconstruida. Si procede a desinstalar estos no serán removidos por lo que deberá eliminarlos manualmente.
 
