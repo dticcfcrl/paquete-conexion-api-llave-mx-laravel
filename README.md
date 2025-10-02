@@ -20,7 +20,7 @@ src/
 ## Instalación
 
 Modificar el composer.json del proyecto y añadir el repositorio del paquete DTICCFCRL/paquete-conexion-api-llave-mx-laravel para poder instalarlo mediante composer.
-> **Nota:** Revise si ya tenia previamente la defición "minimum-stability", si es así solo deje una con el valor "dev".
+> **Nota:** Revise si ya tenía previamente la definición "minimum-stability", si es así solo deje una con el valor "dev".
 ``` bash
     ...
     "repositories": [
