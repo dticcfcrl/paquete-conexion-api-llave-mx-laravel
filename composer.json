@@ -26,11 +26,6 @@
       "LlaveMX\\IntegrationTools\\": "src/"
     }
   },
-  "autoload-dev": {
-    "files": [
-        "app/Helpers/llavemx.php"
-    ]
-  },
   "extra": {
     "laravel": {
       "providers": [

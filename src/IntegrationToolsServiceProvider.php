@@ -104,68 +104,79 @@ class IntegrationToolsServiceProvider extends ServiceProvider
 
     public function register()
     {
-        // lógica de registro
+        
     }
-
 
     public function boot()
     {
-        $this->integrateFiles();
+        $helper_llavemx = base_path('app/Helpers/llavemx.php');
+        if (!file_exists($helper_llavemx)) {
+            $this->integrateFiles();
 
+            //$this->loadViewsFrom(__DIR__.'/resources/views/llavemx', 'llavemx-views');
+            //$this->loadRoutesFrom(__DIR__.'/routes/llavemx.php');
+
+            $this->addEnvData();
+            $this->addSassData();
+        }
         $this->registerRoutes();
-        //$this->registerPublishing();
-
-        //$this->loadViewsFrom(__DIR__.'/resources/views/llavemx', 'llavemx-views');
-        //$this->loadRoutesFrom(__DIR__.'/routes/llavemx.php');
-
-        $this->addEnvData();
-        $this->addSassData();
         $this->loadHelpers();
+    }
 
+    private function registerRoutes()
+    {
+        Route::prefix('llavemx')
+            ->middleware('web')
+            ->namespace('App\Http\Controllers')
+            ->group(base_path('routes/llavemx.php'));
+    }
+    
+    protected function loadHelpers()
+    {
+        foreach (glob(base_path('app/Helpers').'/*.php') as $helper) {
+            require_once $helper;
+        }
     }
 
     private function integrateFiles(){
-        $helper_llavemx = base_path('app/Helpers/llavemx.php');
-        if (!file_exists($helper_llavemx)) {
-            //Helpers
-            $source = __DIR__.'/app/Helpers';
-            $destination = base_path('app/Helpers');
-            (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
-            //Controllers
-            $source = __DIR__.'/app/Http/Controllers';
-            $destination = base_path('app/Http/Controllers');
-            (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
-            /*
-            //Models
-            $source = __DIR__.'/app/Models';
-            $destination = base_path('app/Models');
-            (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
-            //Migrations
-            $source = __DIR__.'/database/migrations';   
-            $destination = base_path('database/migrations');
-            (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
-            */
-            //Services
-            $source = __DIR__.'/app/Services';
-            $destination = base_path('app/Services');
-            (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
-            //Public assets
-            $source = __DIR__.'/public/images';
-            $destination = base_path('public/images');
-            (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
-            //Views
-            $source = __DIR__.'/resources/views';
-            $destination = resource_path('views');
-            (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
-            //SASS
-            $source = __DIR__.'/resources/sass';
-            $destination = resource_path('sass');
-            (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
-            //Routes
-            $source = __DIR__.'/routes';
-            $destination = base_path('routes');
-            (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
-        }
+        //Helpers
+        $source = __DIR__.'/app/Helpers';
+        $destination = base_path('app/Helpers');
+        (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
+        //Controllers
+        $source = __DIR__.'/app/Http/Controllers';
+        $destination = base_path('app/Http/Controllers');
+        (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
+        /*
+        //Models
+        $source = __DIR__.'/app/Models';
+        $destination = base_path('app/Models');
+        (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
+        //Migrations
+        $source = __DIR__.'/database/migrations';   
+        $destination = base_path('database/migrations');
+        (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
+        */
+        //Services
+        $source = __DIR__.'/app/Services';
+        $destination = base_path('app/Services');
+        (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
+        //Public assets
+        $source = __DIR__.'/public/images';
+        $destination = base_path('public/images');
+        (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
+        //Views
+        $source = __DIR__.'/resources/views';
+        $destination = resource_path('views');
+        (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
+        //SASS
+        $source = __DIR__.'/resources/sass';
+        $destination = resource_path('sass');
+        (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
+        //Routes
+        $source = __DIR__.'/routes';
+        $destination = base_path('routes');
+        (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
     }
 
     private function registerPublishing()
@@ -206,14 +217,6 @@ class IntegrationToolsServiceProvider extends ServiceProvider
                 __DIR__.'/helpers/helpers.php' => base_path('app/Helpers/integrationtools.php'),
             ], 'llavemx-helpers');
         }
-    }
-
-    private function registerRoutes()
-    {
-        Route::prefix('llavemx')
-            ->middleware('web')
-            ->namespace('App\Http\Controllers')
-            ->group(base_path('routes/llavemx.php'));
     }
 
     protected function addEnvData()
@@ -263,12 +266,4 @@ class IntegrationToolsServiceProvider extends ServiceProvider
         }
         file_put_contents($sassPath, $sassContent);
     }
-    
-    protected function loadHelpers()
-    {
-        foreach (glob(base_path('app/Helpers').'/*.php') as $helper) {
-            require_once $helper;
-        }
-    }
-
 }
