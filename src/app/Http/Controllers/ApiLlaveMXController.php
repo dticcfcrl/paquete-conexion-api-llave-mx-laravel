@@ -82,6 +82,24 @@ class ApiLlaveMXController extends Controller
         $apellido1 = $data_user['primerApellido'];
         $apellido2 = $data_user['segundoApellido'];
         
+        /* EJEMPLO USUARIO 16 CUENTAS */
+        /*
+        $curp = 'RAHO880306HDFMRC01';
+        $correo = 'federacion.croc.2816@gmail.com';
+        $nombre = 'OCTAVIO';
+        $apellido1 = 'RAMIREZ';
+        $apellido2 = 'HERNANDEZ';
+        */
+
+        /* EJEMPLO USUARIO 8 CUENTAS */
+        /*
+        $curp = 'AORM860818HOCLCN02';
+        $correo = 'oleaginosasdire@outlook.com';
+        $nombre = 'JOSE MANUEL';
+        $apellido1 = 'ALONSO';
+        $apellido2 = 'RICARDEZ';
+        */
+
         /* EJEMPLO USUARIO 2 CUENTAS */
         /*
         $curp = 'TOJA650527HDFRRM08';
