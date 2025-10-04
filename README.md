@@ -128,9 +128,9 @@ En caso de que la ruta "[SERVIDOR]/llavemx/callback" no responda, proceda ha inc
     {
         ...
         $this->mapLlaveMXRoutes();
-        }
+    }
     ...
-        protected function mapLlaveMXRoutes()
+    protected function mapLlaveMXRoutes()
     {
         Route::prefix('llavemx')
             ->middleware('system')
