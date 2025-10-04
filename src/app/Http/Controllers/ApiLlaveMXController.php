@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Session;
 
 use App\Services\{LlaveMXService, Users, CoreService};
 use App\Models\{User, Role, Bitacora};
@@ -18,7 +18,7 @@ class ApiLlaveMXController extends Controller
 {
     public function login()
     {
-        //Generar el state y guardarlo en una cookie por 10 minutos
+        //Generar el state y guardarlo en una session
         $params = [
             'client_id' => env('LLAVE_CLIENT_ID'),
             'redirect_url' => env('LLAVE_URL_REDIRECT'),
@@ -41,10 +41,93 @@ class ApiLlaveMXController extends Controller
         return Redirect::to($url);
     }
 
+    public function newAccount(Request $request)
+    {   
+        //Recuperamos los datos de la cuenta
+        $curp = Session::get('curp');
+        $correo = $request->correo_newAccount;
+        $nombre = Session::get('nombre');
+        $apellido1 = Session::get('apellido1');
+        $apellido2 = Session::get('apellido2');
+        $core_user_id = Session::get('core_user_id');
+        $core_token_session = Session::get('core_token_session');
+        //Validar que el correo para el mismo usuario no este previamente registrado
+        $preregistrado = User::where('email',$correo)
+                        ->whereRaw("unaccent(UPPER(first_name)) = unaccent(UPPER('".$nombre."')) AND unaccent(UPPER(last_name)) = unaccent(UPPER('".$apellido1."')) AND unaccent(UPPER(second_last_name)) = unaccent(UPPER('".$apellido2."'))")
+                        ->exists();
+        if ($preregistrado){
+            return redirect()->route('llavemx.selector')->with('error', 'Ya existe una cuenta con el correo "'.$correo.'".');
+        }
+
+        //Registramos la cuenta tomando los datos del usuario
+        $role_name = 'representante_legal';
+        $data_user = [
+            'first_name' => $nombre,
+            'last_name' => $apellido1,
+            'second_last_name' => $apellido2,
+            'email' => $correo,
+            'user_core_id' => isset($core_user_id)?$core_user_id:null,
+            'token_session' => isset($core_token_session)?$core_token_session:null
+        ];
+        $user = User::create($data_user);
+        $role = Role::where('name', $role_name)->first();
+        $user->assignRole($role->id);
+        /*
+        * MODIFICAR:
+        * Revisar si requiere bitacorización
+        */
+        Bitacora::create([
+            'usuario_id' => $user->id,
+            'code' => 'admin',
+            'subcode' => 'usuarios',
+            'descripcion' => 'Se registró el usuario',
+            'referencia_id' => $user->id,
+            'tipo_referencia' => 'usuario'
+        ]);
+        //Limpiamos la session de selección de cuenta si existen multiples
+        Session::forget('cuentas');
+        /*
+        * MODIFICAR:
+        * Ajustar segun estructura de usuarios del sistema
+        */
+        $data = DB::select("SELECT u.id as user_id
+                            FROM public.users u
+                            LEFT JOIN public.usuarios_solicitudes us ON us.usuario_id = u.id
+                            WHERE (UPPER(u.email) = UPPER(?) OR UPPER(us.curp) = UPPER(?) OR 
+                                (
+                                    unaccent(UPPER(u.first_name)) = unaccent(UPPER(?)) AND 
+                                    unaccent(UPPER(u.last_name)) = unaccent(UPPER(?)) AND 
+                                    unaccent(UPPER(u.second_last_name)) = unaccent(UPPER(?))
+                                )
+                                ) AND u.deleted_at IS NULL AND u.activo = true",
+                            [$correo, $curp, $nombre, $apellido1, $apellido2]);
+        //Recuperando los ids de las cuentas de usuario encontradas
+        $users_id = array_map(fn($row) => $row->user_id, $data);
+        //Recuperando los usuarios
+        $users = User::whereIn('id',$users_id)->get();
+        if($users->count() > 0){
+            //Guardamos los users en la session 'cuentas'
+            Session::put('cuentas', implode(',', $users_id));
+            //Redireccionamos a una vista para que el usuario seleccione la cuenta con la que desea ingresar
+            return redirect()->route('llavemx.selector');
+        }
+        /*
+        * MODIFICAR:
+        * Ajustar segun roles del sistema la bandeja a la que manda
+        */
+        if(Auth::user()->hasRole('admin')){
+            return redirect('admin/resoluciones');
+        }else if (Auth::user()->hasRole('representante_legal')) {
+            return redirect('/mis-tramites');
+        }
+        
+        return redirect('/revision-tramites');
+    }
+
     public function callback(Request $request)
     {
-        //Limpiamos la cookie de selección de cuenta si existen multiples
-        Cookie::queue(Cookie::forget('j7pk19'));
+        //Limpiamos la session de selección de cuenta si existen multiples
+        Session::forget('cuentas');
         //PASO 01. Validar el state
         /* 
         *  NOTA DE SEGURIDAD: 
@@ -52,7 +135,7 @@ class ApiLlaveMXController extends Controller
         *  mencionados, deberá validar que el “state” sea el mismo que envió a Llave MX para cada solicitud de 
         *  inicio de sesión de un usuario, ya que este parámetro sirve para mitigar ataques CSRF.
         */
-        $state_csrf = Cookie::get('state_csrf');
+        $state_csrf = Session::get('state_csrf');
         if($state_csrf != $request->state){
             //Regresamos al login con error de state inválido
             return Redirect::to('/')->withErrors(['msg' => 'Error de validación de seguridad. Inténtelo de nuevo.']);
@@ -82,32 +165,14 @@ class ApiLlaveMXController extends Controller
         $apellido1 = $data_user['primerApellido'];
         $apellido2 = $data_user['segundoApellido'];
         
-        /* EJEMPLO USUARIO 16 CUENTAS */
-        /*
-        $curp = 'RAHO880306HDFMRC01';
-        $correo = 'federacion.croc.2816@gmail.com';
-        $nombre = 'OCTAVIO';
-        $apellido1 = 'RAMIREZ';
-        $apellido2 = 'HERNANDEZ';
-        */
-
-        /* EJEMPLO USUARIO 8 CUENTAS */
-        /*
-        $curp = 'AORM860818HOCLCN02';
-        $correo = 'oleaginosasdire@outlook.com';
-        $nombre = 'JOSE MANUEL';
-        $apellido1 = 'ALONSO';
-        $apellido2 = 'RICARDEZ';
-        */
-
         /* EJEMPLO USUARIO 2 CUENTAS */
-        /*
+        
         $curp = 'TOJA650527HDFRRM08';
         $correo = 'core_armandoatj@gmail.com';
         $nombre = 'ARMANDO';
         $apellido1 = 'TORRES';
         $apellido2 = 'JÚAREZ';
-        */
+        
         /*
         $curp = 'PALE650527MDFLPL00';
         $correo = 'elvia@fesamsindicato.com.mx';
@@ -132,8 +197,15 @@ class ApiLlaveMXController extends Controller
         $apellido1 = 'CEYCA';
         $apellido2 = 'CASTRO';
         */
-        
-        
+
+        //Guardamos en sesión los datos de la cuenta por si queremos crear nueva cuenta
+        Session::put('curp', $curp);
+        Session::put('nombre', $nombre);
+        Session::put('apellido1', $apellido1);
+        Session::put('apellido2', $apellido2);
+        Session::put('core_user_id', @$core_user['id']);
+        Session::put('core_token_session', @$core_user['token_session']);
+
         //PASO 05. Revisamos si existe el usuario previamente
         /*
         * MODIFICAR:
@@ -157,8 +229,8 @@ class ApiLlaveMXController extends Controller
         if($users->count() > 0){
             //PASO 06a. Si son varias cuentas manda al selector de cuentas sino inicia sesión con la única cuenta encontrada
             if ($users->count() > 1) {
-                //Guardamos los users en la cookie 'j7pk19'
-                Cookie::queue('j7pk19', Crypt::encryptString(implode(',', $users_id)), 1440);
+                //Guardamos los users en la session 'cuentas'
+                Session::put('cuentas', implode(',', $users_id));
                 //Redireccionamos a una vista para que el usuario seleccione la cuenta con la que desea ingresar
                 return redirect()->route('llavemx.selector');
             }else{
@@ -172,8 +244,8 @@ class ApiLlaveMXController extends Controller
                     'user_core_id' => $user->user_core_id
                 ];
                 $response = $core_service->loginInCore($data_core);
-                //Destruimos la cookie de state
-                Cookie::queue(Cookie::forget('state_csrf'));
+                //Destruimos la session de state
+                Session::forget('state_csrf');
             }
         }else{
             //PASO 06b. Si no existe, crear el usuario y luego iniciar sesión
@@ -189,8 +261,6 @@ class ApiLlaveMXController extends Controller
             $user = User::create($data_user);
             $role = Role::where('name', $role_name)->first();
             $user->assignRole($role->id);
-            $user->password = bcrypt(Str::random(16)); //Hash::make('hola centro'); //Contraseña aleatoria Str::random(16)
-            $user->save();
             /*
             * MODIFICAR:
             * Revisar si requiere bitacorización
@@ -199,7 +269,7 @@ class ApiLlaveMXController extends Controller
                 'usuario_id' => $user->id,
                 'code' => 'admin',
                 'subcode' => 'usuarios',
-                'descripcion' => 'Se restablecio el usuario o contraseña',
+                'descripcion' => 'Se registró el usuario',
                 'referencia_id' => $user->id,
                 'tipo_referencia' => 'usuario'
             ]);
@@ -212,10 +282,9 @@ class ApiLlaveMXController extends Controller
                 'user_core_id' => $user->user_core_id
             ];
             $response = $core_service->loginInCore($data_core);
-            //Destruimos la cookie de state
-            Cookie::queue(Cookie::forget('state_csrf'));
+            //Destruimos la session de state
+            Session::forget('state_csrf');
         }
-
         //PASO 07. Redirigir al usuario a la página principal del sistema acorde a su rol
         if (!Auth::check()) return redirect()->route('inicio')->with('error','No se logro iniciar sesión con el usuario. Inténtelo de nuevo.');
         /*
@@ -247,8 +316,8 @@ class ApiLlaveMXController extends Controller
             'user_core_id' => $user->user_core_id
         ];
         $response = $core_service->loginInCore($data_core);
-        //Destruimos la cookie de state
-        Cookie::queue(Cookie::forget('state_csrf'));
+        //Destruimos la session de state
+        Session::forget('state_csrf');
         //PASO 07. Redirigir al usuario a la página principal del sistema acorde a su rol
         if (!Auth::check()) return redirect()->route('inicio')->with('error','No se logro iniciar sesión con el usuario seleccionado. Inténtelo de nuevo.');
         /*
@@ -267,7 +336,7 @@ class ApiLlaveMXController extends Controller
 
     public function selector()
     {
-        $users_id = explode(',', Crypt::decryptString(Cookie::get('j7pk19')));
+        $users_id = explode(',', Session::get('cuentas'));
         $users = User::whereIn('id',$users_id)->get();
         if(!isset($users)){
             return redirect()->route('inicio')->with('error','Error al recuperar las cuentas de usuario. Inténtelo de nuevo.');

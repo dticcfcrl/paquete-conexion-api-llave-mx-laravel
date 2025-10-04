@@ -7,9 +7,12 @@
         @include('layouts.messages')
 
         <div class="row justify-content-center">
-            <div class="col-md-7">
+            <div class="col-md-12">
                 <h2 class="title-llavemx">Seleccione su cuenta de ingreso</h2>
                 <div class="separador-llavemx"><span></span></div>
+            </div>
+            <div class="col-12 mt-1 mb-4">
+                <button class="btn btn-stps float-right" data-toggle="modal" data-target="#newAccountSelectorModal">Registrar cuenta <i class="icon icon-mas"></i> </button>
             </div>
             <div class="row text-center justify-content-center">
                 @foreach($users as $key => $user)
@@ -25,4 +28,5 @@
             </div>
         </div>
     </div>
+    @include('llavemx.partials.new_account', ['modal_name' => 'newAccountSelectorModal'])
 @endsection

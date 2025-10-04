@@ -1,6 +1,6 @@
 <?php
 
-use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 
 if (!function_exists('llaveMXGeneraState')){
@@ -10,7 +10,7 @@ if (!function_exists('llaveMXGeneraState')){
    */
   function llaveMXGeneraState($length = 65){
     $state = Str::random(64);
-    Cookie::queue('state_csrf', $state, 1440);
+    Session::put('state_csrf', $state);
     return $state;
   }
 }

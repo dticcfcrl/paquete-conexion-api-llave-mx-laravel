@@ -200,3 +200,33 @@
         width: 100%;
     }
 }
+
+.btn-llavemx-primary {
+  background: #fff;
+  border-radius: 3px;
+  border: solid 2px #9d2449;
+  color: #9d2449 !important;
+  font-size: 1.12rem;
+  padding: 10px 25px;
+  font-weight: 500;
+
+  &:hover {
+    background: #9d2449;
+    color: #fff !important;
+  }
+}
+
+.btn-llavemx-cancel {
+  background: #fff;
+  border-radius: 3px;
+  border: solid 2px #b38e5d;
+  color: #b38e5d;
+  font-size: 1.12rem;
+  padding: 10px 25px;
+  font-weight: 500;
+
+  &:hover {
+    background: #b38e5d;
+    color: #fff;
+  }
+}
