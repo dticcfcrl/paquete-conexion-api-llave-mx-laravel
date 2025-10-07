@@ -76,6 +76,7 @@ class ApiLlaveMXController extends Controller
     {   
         //Recuperamos los datos de la cuenta
         $curp = Session::get('curp');
+        $correo_llavemx = Session::get('correo');
         $correo = $request->correo_newAccount;
         $nombre = Session::get('nombre');
         $apellido1 = Session::get('apellido1');
@@ -160,7 +161,7 @@ class ApiLlaveMXController extends Controller
                                     unaccent(UPPER(u.second_last_name)) = unaccent(UPPER(?))
                                 )
                                 ) AND u.deleted_at IS NULL AND u.activo = true",
-                            [$correo, $curp, $nombre, $apellido1, $apellido2]);
+                            [$correo_llavemx, $curp, $nombre, $apellido1, $apellido2]);
         //Recuperando los ids de las cuentas de usuario encontradas
         $users_id = array_map(fn($row) => $row->user_id, $data);
         //Recuperando los usuarios
@@ -227,13 +228,13 @@ class ApiLlaveMXController extends Controller
         $apellido2 = $data_user['segundoApellido'];
         
         /* EJEMPLO USUARIO 2 CUENTAS */
-        
+        /*
         $curp = 'TOJA650527HDFRRM08';
         $correo = 'core_armandoatj@gmail.com';
         $nombre = 'ARMANDO';
         $apellido1 = 'TORRES';
         $apellido2 = 'JÚAREZ';
-        
+        */
         /*
         $curp = 'PALE650527MDFLPL00';
         $correo = 'elvia@fesamsindicato.com.mx';
@@ -261,6 +262,7 @@ class ApiLlaveMXController extends Controller
 
         //Guardamos en sesión los datos de la cuenta por si queremos crear nueva cuenta
         Session::put('curp', $curp);
+        Session::put('correo', $correo);
         Session::put('nombre', $nombre);
         Session::put('apellido1', $apellido1);
         Session::put('apellido2', $apellido2);
