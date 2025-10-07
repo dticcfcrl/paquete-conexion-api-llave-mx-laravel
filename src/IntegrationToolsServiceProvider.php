@@ -243,6 +243,7 @@ class IntegrationToolsServiceProvider extends ServiceProvider
             'LLAVE_ENDPOINT_GETMORALES' => 'ws/rest/perfil/moral',
             'LLAVE_ENDPOINT_LOGOUT' => 'ws/rest/oauth/cerrarSesion',
             'LLAVE_ENDPOINT_CREATEACCOUNT' => 'RegistroCiudadano.xhtml',
+            'LLAVE_ACCOUNT_LIMIT' => '20'
         ];
 
         foreach ($vars as $key => $default) {

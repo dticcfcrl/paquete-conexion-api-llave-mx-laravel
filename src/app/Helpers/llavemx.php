@@ -25,3 +25,21 @@ if (!function_exists('llaveMXEncryptString')){
     return Crypt::encryptString($data);
   }
 }
+if (!function_exists('llaveMXAccountEnabled')){
+  /**
+   * llaveMXAccountEnabled: Es un metodo que valida si la cuenta tiene un correo verificado
+   */
+  function llaveMXAccountEnabled($correo)
+  {
+    $result = true;
+    try{
+      $solicitud = \App\Models\UsuarioSolicitud::whereCorreo($correo)->first();
+      if (isset($solicitud->id)) {
+        if (!$solicitud->se_registro){
+          $result = false;
+        }
+      }
+    } catch (\Exception $e) {}
+    return $result;
+  }
+}

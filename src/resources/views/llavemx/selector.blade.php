@@ -16,8 +16,14 @@
             </div>
             <div class="row text-center justify-content-center">
                 @foreach($users as $key => $user)
-                <div class="card mb-3 mr-1 ml-1 col-4 btn-llavemx" style="cursor: pointer;" 
-                     onclick="location.href='{{ route('llavemx.loginSelector', ['hash_user_id' => llaveMXEncryptString($user->id)]) }}'">
+                @php $isEnabled = llaveMXAccountEnabled($user->email) @endphp
+                <div class="card mb-3 mr-1 ml-1 col-4 @if($isEnabled) btn-llavemx @else btn-llavemx-dissabled @endif" 
+                    @if ($isEnabled)
+                    style="cursor: pointer;" onclick="location.href='{{ route('llavemx.loginSelector', ['hash_user_id' => llaveMXEncryptString($user->id)]) }}'"
+                    @else
+                    data-toggle="tooltip" data-placement="top" title="Aún no confirmas tu correo electrónico dando clic en el enlace que te hemos enviado"
+                    @endif
+                >
                     <div class="card-body">
                         <img src="{{ asset('images/user_llaveMX.png') }}" style="width: 80px;">
                         <h5 class="card-title">{{ $user->email }}</h5>

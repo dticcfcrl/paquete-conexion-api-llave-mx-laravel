@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Mail;
 use Auth;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\DB;
@@ -13,6 +15,11 @@ use Illuminate\Support\Facades\Session;
 
 use App\Services\{LlaveMXService, Users, CoreService};
 use App\Models\{User, Role, Bitacora};
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+// MODIFICAR: (Si no aplica eliminar todo el segmento)
+use App\Models\UsuarioSolicitud;
+//--------------------------------------------------------------------------------------------------------------------------------------------------
 
 class ApiLlaveMXController extends Controller
 {
@@ -41,6 +48,30 @@ class ApiLlaveMXController extends Controller
         return Redirect::to($url);
     }
 
+    private function sendMailValidarcorreo($email, $token)
+    {
+        if (strpos($email, 'core_') !== false) return false;
+        $subject = 'Confirmación de correo electrónico';
+        $description = '<p>Hola.</p>';
+        $description .= '<p>Para completar el proceso de registro, necesitamos verificar tu dirección de correo electrónico. Por favor, sigue el enlace a continuación para validar tu cuenta:</p>';
+        $link = url('registro/validar-correo/' . $token);
+        $description .= '<p><a href="' . $link . '">Haz clic aquí</a></p>';
+        try {
+            config(['mail.default' => 'secondary']); // Cambia al mailer secundario
+            Mail::send([], [], function($message) use ($email, $subject, $description) {
+                $fromAddress = config('mail.mailers.secondary.from.address');
+                $fromName = config('mail.mailers.secondary.from.name');
+                $message->from($fromAddress, $fromName);
+                $message->to($email);
+                $message->subject($subject);
+                $message->html($description);
+
+            });
+        } catch (\Throwable $th) {
+            return false;
+        }
+    }
+
     public function newAccount(Request $request)
     {   
         //Recuperamos los datos de la cuenta
@@ -58,7 +89,14 @@ class ApiLlaveMXController extends Controller
         if ($preregistrado){
             return redirect()->route('llavemx.selector')->with('error', 'Ya existe una cuenta con el correo "'.$correo.'".');
         }
-
+        //Validar cuantas cuentas ya tiene creado el usuario y limitarlas con LLAVE_ACCOUNT_LIMIT
+        $cuentas = 1;
+        if (Session::has('cuentas')) {
+            $cuentas = count(explode(',', Session::get('cuentas')));
+        }
+        if ($cuentas+1 > env('LLAVE_ACCOUNT_LIMIT',20)){
+            return redirect()->route('llavemx.selector')->with('error', 'Ya tienes la cantidad máxima de cuentas permitidas.');
+        }
         //Registramos la cuenta tomando los datos del usuario
         $role_name = 'representante_legal';
         $data_user = [
@@ -84,6 +122,28 @@ class ApiLlaveMXController extends Controller
             'referencia_id' => $user->id,
             'tipo_referencia' => 'usuario'
         ]);
+        $message = 'Cuenta registrada exitosamente.';
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        // MODIFICAR: (Si no aplica eliminar todo el segmento)
+        // Crear el registro de validación de correo
+        try {
+            $solicitud = UsuarioSolicitud::whereCorreo($correo)->first();
+            if (isset($solicitud->id)) {
+                if (strpos($correo, 'core_') === false)
+                    $this->sendMailValidarcorreo($correo, $solicitud->token_solicitud);
+            }else{
+                    $token = Str::uuid();
+                    $solicitud = UsuarioSolicitud::create([
+                        'correo' => $correo,
+                        'token_solicitud' => $token,
+                        'fecha_solicitud' => date('Y-m-d H:i:s'),
+                    ]);
+                    if (strpos($correo, 'core_') === false)
+                        $this->sendMailValidarcorreo($correo, $token);
+            }
+            $message = 'Para continuar con tu registro, deberás confirmar tu correo electrónico dando clic en el enlace que te hemos enviado a "' . $correo . '".';
+         } catch (Exception $e) {}
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
         //Limpiamos la session de selección de cuenta si existen multiples
         Session::forget('cuentas');
         /*
@@ -109,8 +169,9 @@ class ApiLlaveMXController extends Controller
             //Guardamos los users en la session 'cuentas'
             Session::put('cuentas', implode(',', $users_id));
             //Redireccionamos a una vista para que el usuario seleccione la cuenta con la que desea ingresar
-            return redirect()->route('llavemx.selector');
+            return redirect()->route('llavemx.selector')->with('success', $message);
         }
+        //Sino encuentra cuentas manda a la bandeja por default al rol
         /*
         * MODIFICAR:
         * Ajustar segun roles del sistema la bandeja a la que manda
@@ -296,7 +357,6 @@ class ApiLlaveMXController extends Controller
         }else if (Auth::user()->hasRole('representante_legal')) {
             return redirect('/mis-tramites');
         }
-        
         return redirect('/revision-tramites');
         //return Redirect::to('/');
     }
@@ -329,18 +389,31 @@ class ApiLlaveMXController extends Controller
         }else if (Auth::user()->hasRole('representante_legal')) {
             return redirect('/mis-tramites');
         }
-        
         return redirect('/revision-tramites');
         //return Redirect::to('/');
     }
 
     public function selector()
     {
-        $users_id = explode(',', Session::get('cuentas'));
-        $users = User::whereIn('id',$users_id)->get();
-        if(!isset($users)){
-            return redirect()->route('inicio')->with('error','Error al recuperar las cuentas de usuario. Inténtelo de nuevo.');
+        if (Session::has('cuentas')) {
+            $users_id = explode(',', Session::get('cuentas'));
+            $users = User::whereIn('id',$users_id)->get();
+            if(!isset($users)){
+                return redirect()->route('inicio')->with('error','Error al recuperar las cuentas de usuario. Inténtelo de nuevo.');
+            }
+            return view('llavemx/selector', compact('users'));
         }
-        return view('llavemx/selector', compact('users'));
+
+        /*
+        * MODIFICAR:
+        * Ajustar segun roles del sistema la bandeja a la que manda
+        */
+        if(Auth::user()->hasRole('admin')){
+            return redirect('admin/resoluciones');
+        }else if (Auth::user()->hasRole('representante_legal')) {
+            return redirect('/mis-tramites');
+        }
+        return redirect('/revision-tramites');
+        //return Redirect::to('/');
     }
 }

@@ -35,7 +35,7 @@ Modificar el composer.json del proyecto y añadir el repositorio del paquete DTI
 ```
 Instalando el paquete LlaveMX via Composer
 ``` bash
-composer require dticcfcrl/paquete-conexion-api-llave-mx-laravel:v0.2.3
+composer require dticcfcrl/paquete-conexion-api-llave-mx-laravel:v0.2.4
 ```
 
 Si requiere remover el paquete ejecute 
@@ -101,6 +101,28 @@ Al final del código del header incluya el partial de la modal para el registro 
 @include('llavemx.partials.new_account', ['modal_name' => 'newAccountModal'])
 ```
 - Paso 7:  Modificar el controller ApiLlaveMXController (app/Http/Controller/ApiLlaveMXController.php) revisando y corrigiendo la query de búsqueda de usuarios acorde a la estructura de seguridad del proyecto así como la sección de rutas acorde al rol una vez que se ha autentificado el usuario.
+> **Nota:** Elimine el modelo UsuarioSolicitud sino existe en su proyecto, así mismo los bloques de código que hacen referencia a él en las líneas 126 a 146.
+``` bash
+use App\Models\UsuarioSolicitud;
+...
+try {
+    $solicitud = UsuarioSolicitud::whereCorreo($correo)->first();
+    if (isset($solicitud->id)) {
+        if (strpos($correo, 'core_') === false)
+            $this->sendMailValidarcorreo($correo, $solicitud->token_solicitud);
+    }else{
+            $token = Str::uuid();
+            $solicitud = UsuarioSolicitud::create([
+                'correo' => $correo,
+                'token_solicitud' => $token,
+                'fecha_solicitud' => date('Y-m-d H:i:s'),
+            ]);
+            if (strpos($correo, 'core_') === false)
+                $this->sendMailValidarcorreo($correo, $token);
+    }
+    $message = 'Para continuar con tu registro, deberás confirmar tu correo electrónico dando clic en el enlace que te hemos enviado a "' . $correo . '".';
+} catch (Exception $e) {}
+```
 > **Nota:** Para facilitar la edición del controller busque los comentarios que indican "MODIFICAR:".
 ``` bash
     /*
