@@ -189,8 +189,8 @@ class ApiLlaveMXController extends Controller
             }else if (Auth::user()->hasRole('representante_legal')) {
                 return redirect('/mis-tramites');
             }
+            return redirect('/revision-tramites');
         }
-        //return redirect('/revision-tramites');
         return Redirect::to('/');
     }
 
@@ -368,7 +368,6 @@ class ApiLlaveMXController extends Controller
             return redirect('/mis-tramites');
         }
         return redirect('/revision-tramites');
-        //return Redirect::to('/');
     }
 
     public function loginSelector($hash_user_id)
@@ -402,8 +401,8 @@ class ApiLlaveMXController extends Controller
             }else if (Auth::user()->hasRole('representante_legal')) {
                 return redirect('/mis-tramites');
             }
+            return redirect('/revision-tramites');
         }
-        //return redirect('/revision-tramites');
         return Redirect::to('/');
     }
 
@@ -428,8 +427,8 @@ class ApiLlaveMXController extends Controller
             }else if (Auth::user()->hasRole('representante_legal')) {
                 return redirect('/mis-tramites');
             }
+            return redirect('/revision-tramites');
         }
-        //return redirect('/revision-tramites');
         return Redirect::to('/');
     }
 }
