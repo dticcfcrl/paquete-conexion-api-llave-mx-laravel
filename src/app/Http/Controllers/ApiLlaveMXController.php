@@ -73,117 +73,125 @@ class ApiLlaveMXController extends Controller
     }
 
     public function newAccount(Request $request)
-    {   
-        //Recuperamos los datos de la cuenta
-        $curp = Session::get('curp');
-        $correo_llavemx = Session::get('correo');
-        $correo = $request->correo_newAccount;
-        $nombre = Session::get('nombre');
-        $apellido1 = Session::get('apellido1');
-        $apellido2 = Session::get('apellido2');
-        $core_user_id = Session::get('core_user_id');
-        $core_token_session = Session::get('core_token_session');
-        //Validar que el correo para el mismo usuario no este previamente registrado
-        $preregistrado = User::where('email',$correo)
-                        //->whereRaw("unaccent(UPPER(first_name)) = unaccent(UPPER('".$nombre."')) AND unaccent(UPPER(last_name)) = unaccent(UPPER('".$apellido1."')) AND unaccent(UPPER(second_last_name)) = unaccent(UPPER('".$apellido2."'))")
-                        ->exists();
-        if ($preregistrado){
-            return redirect()->route('llavemx.selector')->with('error', 'Ya existe una cuenta con el correo "'.$correo.'".');
+    {  
+        if ($request->isMethod('get')) {
+            return redirect()->back();
         }
-        //Validar cuantas cuentas ya tiene creado el usuario y limitarlas con LLAVE_ACCOUNT_LIMIT
-        $cuentas = 1;
-        if (Session::has('cuentas')) {
-            $cuentas = count(explode(',', Session::get('cuentas')));
-        }
-        if ($cuentas+1 > env('LLAVE_ACCOUNT_LIMIT',20)){
-            return redirect()->route('llavemx.selector')->with('error', 'Ya tienes la cantidad máxima de cuentas permitidas.');
-        }
-        //Registramos la cuenta tomando los datos del usuario
-        $role_name = 'representante_legal';
-        $data_user = [
-            'first_name' => $nombre,
-            'last_name' => $apellido1,
-            'second_last_name' => $apellido2,
-            'email' => $correo,
-            'user_core_id' => isset($core_user_id)?$core_user_id:null,
-            'token_session' => isset($core_token_session)?$core_token_session:null
-        ];
-        $user = User::create($data_user);
-        $role = Role::where('name', $role_name)->first();
-        $user->assignRole($role->id);
-        /*
-        * MODIFICAR:
-        * Revisar si requiere bitacorización
-        */
-        Bitacora::create([
-            'usuario_id' => $user->id,
-            'code' => 'admin',
-            'subcode' => 'usuarios',
-            'descripcion' => 'Se registró el usuario',
-            'referencia_id' => $user->id,
-            'tipo_referencia' => 'usuario'
-        ]);
-        $message = 'Cuenta registrada exitosamente.';
-        //--------------------------------------------------------------------------------------------------------------------------------------------------
-        // MODIFICAR: (Si no aplica eliminar todo el segmento)
-        // Crear el registro de validación de correo
-        try {
-            $solicitud = UsuarioSolicitud::whereCorreo($correo)->first();
-            if (isset($solicitud->id)) {
-                if (strpos($correo, 'core_') === false)
-                    $this->sendMailValidarcorreo($correo, $solicitud->token_solicitud);
-            }else{
-                    $token = Str::uuid();
-                    $solicitud = UsuarioSolicitud::create([
-                        'correo' => $correo,
-                        'token_solicitud' => $token,
-                        'fecha_solicitud' => date('Y-m-d H:i:s'),
-                    ]);
-                    if (strpos($correo, 'core_') === false)
-                        $this->sendMailValidarcorreo($correo, $token);
+
+        if (Session::has('curp')) {
+            //Recuperamos los datos de la cuenta
+            $curp = Session::get('curp');
+            $correo_llavemx = Session::get('correo');
+            $correo = $request->correo_newAccount;
+            $nombre = Session::get('nombre');
+            $apellido1 = Session::get('apellido1');
+            $apellido2 = Session::get('apellido2');
+            $core_user_id = Session::get('core_user_id');
+            $core_token_session = Session::get('core_token_session');
+            //Validar que el correo para el mismo usuario no este previamente registrado
+            $preregistrado = User::where('email',$correo)
+                            //->whereRaw("unaccent(UPPER(first_name)) = unaccent(UPPER('".$nombre."')) AND unaccent(UPPER(last_name)) = unaccent(UPPER('".$apellido1."')) AND unaccent(UPPER(second_last_name)) = unaccent(UPPER('".$apellido2."'))")
+                            ->exists();
+            if ($preregistrado){
+                return redirect()->route('llavemx.selector')->with('error', 'Ya existe una cuenta con el correo "'.$correo.'".');
             }
-            $message = 'Para continuar con tu registro, deberás confirmar tu correo electrónico dando clic en el enlace que te hemos enviado a "' . $correo . '".';
-         } catch (Exception $e) {}
-        //--------------------------------------------------------------------------------------------------------------------------------------------------
-        //Limpiamos la session de selección de cuenta si existen multiples
-        Session::forget('cuentas');
-        /*
-        * MODIFICAR:
-        * Ajustar segun estructura de usuarios del sistema
-        */
-        $data = DB::select("SELECT u.id as user_id
-                            FROM public.users u
-                            LEFT JOIN public.usuarios_solicitudes us ON us.usuario_id = u.id
-                            WHERE (UPPER(u.email) = UPPER(?) OR UPPER(us.curp) = UPPER(?) OR 
-                                (
-                                    unaccent(UPPER(u.first_name)) = unaccent(UPPER(?)) AND 
-                                    unaccent(UPPER(u.last_name)) = unaccent(UPPER(?)) AND 
-                                    unaccent(UPPER(u.second_last_name)) = unaccent(UPPER(?))
-                                )
-                                ) AND u.deleted_at IS NULL AND u.activo = true",
-                            [$correo_llavemx, $curp, $nombre, $apellido1, $apellido2]);
-        //Recuperando los ids de las cuentas de usuario encontradas
-        $users_id = array_map(fn($row) => $row->user_id, $data);
-        //Recuperando los usuarios
-        $users = User::whereIn('id',$users_id)->get();
-        if($users->count() > 0){
-            //Guardamos los users en la session 'cuentas'
-            Session::put('cuentas', implode(',', $users_id));
-            //Redireccionamos a una vista para que el usuario seleccione la cuenta con la que desea ingresar
-            return redirect()->route('llavemx.selector')->with('success', $message);
+            //Validar cuantas cuentas ya tiene creado el usuario y limitarlas con LLAVE_ACCOUNT_LIMIT
+            $cuentas = 1;
+            if (Session::has('cuentas')) {
+                $cuentas = count(explode(',', Session::get('cuentas')));
+            }
+            if ($cuentas+1 > env('LLAVE_ACCOUNT_LIMIT',20)){
+                return redirect()->route('llavemx.selector')->with('error', 'Ya tienes la cantidad máxima de cuentas permitidas.');
+            }
+            //Registramos la cuenta tomando los datos del usuario
+            $role_name = 'representante_legal';
+            $data_user = [
+                'first_name' => $nombre,
+                'last_name' => $apellido1,
+                'second_last_name' => $apellido2,
+                'email' => $correo,
+                'user_core_id' => isset($core_user_id)?$core_user_id:null,
+                'token_session' => isset($core_token_session)?$core_token_session:null
+            ];
+            $user = User::create($data_user);
+            $role = Role::where('name', $role_name)->first();
+            $user->assignRole($role->id);
+            /*
+            * MODIFICAR:
+            * Revisar si requiere bitacorización
+            */
+            Bitacora::create([
+                'usuario_id' => $user->id,
+                'code' => 'admin',
+                'subcode' => 'usuarios',
+                'descripcion' => 'Se registró el usuario',
+                'referencia_id' => $user->id,
+                'tipo_referencia' => 'usuario'
+            ]);
+            $message = 'Cuenta registrada exitosamente.';
+            //--------------------------------------------------------------------------------------------------------------------------------------------------
+            // MODIFICAR: (Si no aplica eliminar todo el segmento)
+            // Crear el registro de validación de correo
+            try {
+                $solicitud = UsuarioSolicitud::whereCorreo($correo)->first();
+                if (isset($solicitud->id)) {
+                    if (strpos($correo, 'core_') === false)
+                        $this->sendMailValidarcorreo($correo, $solicitud->token_solicitud);
+                }else{
+                        $token = Str::uuid();
+                        $solicitud = UsuarioSolicitud::create([
+                            'correo' => $correo,
+                            'token_solicitud' => $token,
+                            'fecha_solicitud' => date('Y-m-d H:i:s'),
+                        ]);
+                        if (strpos($correo, 'core_') === false)
+                            $this->sendMailValidarcorreo($correo, $token);
+                }
+                $message = 'Para continuar con tu registro, deberás confirmar tu correo electrónico dando clic en el enlace que te hemos enviado a "' . $correo . '".';
+            } catch (Exception $e) {}
+            //--------------------------------------------------------------------------------------------------------------------------------------------------
+            //Limpiamos la session de selección de cuenta si existen multiples
+            Session::forget('cuentas');
+            /*
+            * MODIFICAR:
+            * Ajustar segun estructura de usuarios del sistema
+            */
+            $data = DB::select("SELECT u.id as user_id
+                                FROM public.users u
+                                LEFT JOIN public.usuarios_solicitudes us ON us.usuario_id = u.id
+                                WHERE (UPPER(u.email) = UPPER(?) OR UPPER(us.curp) = UPPER(?) OR 
+                                    (
+                                        unaccent(UPPER(u.first_name)) = unaccent(UPPER(?)) AND 
+                                        unaccent(UPPER(u.last_name)) = unaccent(UPPER(?)) AND 
+                                        unaccent(UPPER(u.second_last_name)) = unaccent(UPPER(?))
+                                    )
+                                    ) AND u.deleted_at IS NULL AND u.activo = true",
+                                [$correo_llavemx, $curp, $nombre, $apellido1, $apellido2]);
+            //Recuperando los ids de las cuentas de usuario encontradas
+            $users_id = array_map(fn($row) => $row->user_id, $data);
+            //Recuperando los usuarios
+            $users = User::whereIn('id',$users_id)->get();
+            if($users->count() > 0){
+                //Guardamos los users en la session 'cuentas'
+                Session::put('cuentas', implode(',', $users_id));
+                //Redireccionamos a una vista para que el usuario seleccione la cuenta con la que desea ingresar
+                return redirect()->route('llavemx.selector')->with('success', $message);
+            }
         }
         //Sino encuentra cuentas manda a la bandeja por default al rol
         /*
         * MODIFICAR:
         * Ajustar segun roles del sistema la bandeja a la que manda
         */
-        if(Auth::user()->hasRole('admin')){
-            return redirect('admin/resoluciones');
-        }else if (Auth::user()->hasRole('representante_legal')) {
-            return redirect('/mis-tramites');
+        if (Auth::check()){
+            if(Auth::user()->hasRole('admin')){
+                return redirect('admin/resoluciones');
+            }else if (Auth::user()->hasRole('representante_legal')) {
+                return redirect('/mis-tramites');
+            }
         }
-        
-        return redirect('/revision-tramites');
+        //return redirect('/revision-tramites');
+        return Redirect::to('/');
     }
 
     public function callback(Request $request)
@@ -365,34 +373,38 @@ class ApiLlaveMXController extends Controller
 
     public function loginSelector($hash_user_id)
     {
-        $user_id = Crypt::decryptString($hash_user_id);
-        $user = User::find($user_id);
-        if(!isset($user->id)){
-            return redirect()->route('inicio')->with('error','No se encontró el usuario seleccionado. Inténtelo de nuevo.');
+        if (Session::has('cuentas')) {
+            $user_id = Crypt::decryptString($hash_user_id);
+            $user = User::find($user_id);
+            if(!isset($user->id)){
+                return redirect()->route('inicio')->with('error','No se encontró el usuario seleccionado. Inténtelo de nuevo.');
+            }
+            Auth::login($user, true);
+            //Abrimos sesión en registro
+            $core_service = new CoreService();
+            $data_core = [
+                'email' => $user->email,
+                'user_core_id' => $user->user_core_id
+            ];
+            $response = $core_service->loginInCore($data_core);
+            //Destruimos la session de state
+            Session::forget('state_csrf');
+            //PASO 07. Redirigir al usuario a la página principal del sistema acorde a su rol
+            if (!Auth::check()) return redirect()->route('inicio')->with('error','No se logro iniciar sesión con el usuario seleccionado. Inténtelo de nuevo.');
         }
-        Auth::login($user, true);
-        //Abrimos sesión en registro
-        $core_service = new CoreService();
-        $data_core = [
-            'email' => $user->email,
-            'user_core_id' => $user->user_core_id
-        ];
-        $response = $core_service->loginInCore($data_core);
-        //Destruimos la session de state
-        Session::forget('state_csrf');
-        //PASO 07. Redirigir al usuario a la página principal del sistema acorde a su rol
-        if (!Auth::check()) return redirect()->route('inicio')->with('error','No se logro iniciar sesión con el usuario seleccionado. Inténtelo de nuevo.');
         /*
         * MODIFICAR:
         * Ajustar segun roles del sistema la bandeja a la que manda
         */
-        if(Auth::user()->hasRole('admin')){
-            return redirect('admin/resoluciones');
-        }else if (Auth::user()->hasRole('representante_legal')) {
-            return redirect('/mis-tramites');
+        if (Auth::check()){
+            if(Auth::user()->hasRole('admin')){
+                return redirect('admin/resoluciones');
+            }else if (Auth::user()->hasRole('representante_legal')) {
+                return redirect('/mis-tramites');
+            }
         }
-        return redirect('/revision-tramites');
-        //return Redirect::to('/');
+        //return redirect('/revision-tramites');
+        return Redirect::to('/');
     }
 
     public function selector()
@@ -410,12 +422,14 @@ class ApiLlaveMXController extends Controller
         * MODIFICAR:
         * Ajustar segun roles del sistema la bandeja a la que manda
         */
-        if(Auth::user()->hasRole('admin')){
-            return redirect('admin/resoluciones');
-        }else if (Auth::user()->hasRole('representante_legal')) {
-            return redirect('/mis-tramites');
+        if (Auth::check()){
+            if(Auth::user()->hasRole('admin')){
+                return redirect('admin/resoluciones');
+            }else if (Auth::user()->hasRole('representante_legal')) {
+                return redirect('/mis-tramites');
+            }
         }
-        return redirect('/revision-tramites');
-        //return Redirect::to('/');
+        //return redirect('/revision-tramites');
+        return Redirect::to('/');
     }
 }
