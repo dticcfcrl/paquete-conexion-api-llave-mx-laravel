@@ -19,7 +19,7 @@ src/
 
 ## Instalación
 
-**Instalación desde el repositorio GitHub**
+**Instalación desde el repositorio GitHub**  
 Modificaque el composer.json del proyecto y añadir el repositorio del paquete DTICCFCRL/paquete-conexion-api-llave-mx-laravel para poder instalarlo mediante composer.
 > **Nota:** Revise si ya tenía previamente la definición "minimum-stability", si es así solo deje una con el valor "dev". Tambien, revise la definición "prefer-stable" que no se duplique y tenga el valor "true". 
 ``` bash
@@ -39,7 +39,7 @@ Ejecute el siguiente comando para instalar el paquete LlaveMX via Composer
 composer require dticcfcrl/paquete-conexion-api-llave-mx-laravel:v0.2.9
 ```
 
-**Instalación desde el directorio local del repositorio**
+**Instalación desde el directorio local del repositorio**  
 En caso de tener problemas para instalar el paquete directamente desde GitHub, proceda a descargar el repositorio y dejarlo al mismo nivel que el directorio del proyecto en que esta trabajando y desea implementarle LlaveMX.
 Modificaque el composer.json del proyecto y añadir la ruta al paquete DTICCFCRL/paquete-conexion-api-llave-mx-laravel para poder instalarlo mediante composer.
 ``` bash
@@ -61,7 +61,7 @@ composer require dticcfcrl/paquete-conexion-api-llave-mx-laravel
 ```
 > **Nota:** La versión que se instalará dependerá de la versión que se tenga bajada del repositorio del paquete DTICCFCRL/paquete-conexion-api-llave-mx-laravel. 
 
-**Desinstalando el paquete**
+**Desinstalando el paquete**  
 Si requiere remover el paquete ejecute el comando:
 ``` bash
 composer remove dticcfcrl/paquete-conexion-api-llave-mx-laravel
