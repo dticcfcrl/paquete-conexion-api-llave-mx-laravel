@@ -35,7 +35,7 @@ Modificar el composer.json del proyecto y añadir el repositorio del paquete DTI
 ```
 Instalando el paquete LlaveMX via Composer
 ``` bash
-composer require dticcfcrl/paquete-conexion-api-llave-mx-laravel:v0.2.5
+composer require dticcfcrl/paquete-conexion-api-llave-mx-laravel:v0.2.6
 ```
 
 Si requiere remover el paquete ejecute 

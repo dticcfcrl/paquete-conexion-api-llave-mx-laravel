@@ -85,7 +85,7 @@ class ApiLlaveMXController extends Controller
         $core_token_session = Session::get('core_token_session');
         //Validar que el correo para el mismo usuario no este previamente registrado
         $preregistrado = User::where('email',$correo)
-                        ->whereRaw("unaccent(UPPER(first_name)) = unaccent(UPPER('".$nombre."')) AND unaccent(UPPER(last_name)) = unaccent(UPPER('".$apellido1."')) AND unaccent(UPPER(second_last_name)) = unaccent(UPPER('".$apellido2."'))")
+                        //->whereRaw("unaccent(UPPER(first_name)) = unaccent(UPPER('".$nombre."')) AND unaccent(UPPER(last_name)) = unaccent(UPPER('".$apellido1."')) AND unaccent(UPPER(second_last_name)) = unaccent(UPPER('".$apellido2."'))")
                         ->exists();
         if ($preregistrado){
             return redirect()->route('llavemx.selector')->with('error', 'Ya existe una cuenta con el correo "'.$correo.'".');

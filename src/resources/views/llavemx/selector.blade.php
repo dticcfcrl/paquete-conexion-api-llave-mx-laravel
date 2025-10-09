@@ -14,7 +14,7 @@
             <div class="col-12 mt-1 mb-4">
                 <button class="btn btn-stps float-right" data-toggle="modal" data-target="#newAccountSelectorModal">Registrar cuenta <i class="icon icon-mas"></i> </button>
             </div>
-            <div class="row text-center justify-content-center">
+            <div class="row w-100 text-center justify-content-center">
                 @foreach($users as $key => $user)
                 @php $isEnabled = llaveMXAccountEnabled($user->email) @endphp
                 <div class="card mb-3 mr-1 ml-1 col-4 @if($isEnabled) btn-llavemx @else btn-llavemx-dissabled @endif" 
