@@ -67,7 +67,7 @@ composer require dticcfcrl/paquete-conexion-api-llave-mx-laravel
 
 ## Uso
 
-Una vez instalado el paquete y que se han desplegado en el proyecto las vistas, controladores, rutas, helpers y services de la funcionalidad de LlaveMX proceda con los siguientes pasos para integrarlos a su proyecto.
+Una vez instalado el paquete y que se han desplegado en el proyecto las vistas, controladores, rutas, helpers y services de la funcionalidad de LlaveMX proceda con los siguientes pasos para integrarlos apropiadamente a su proyecto.
 
 - Paso 1:  Ejecutar el comando de compilación del proyecto dado que el paquete integra una hoja de estilos que ya ha sido añadida (resources/sass/app.scss).
 ``` bash
