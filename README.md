@@ -75,6 +75,29 @@ npm run build
 ```
 - Paso 2:  Ajustar las variables .env (inician con LLAVE_XXXX) y limpiar la cache. 
 > **Nota:** Al instalar el paquete por primer vez, se agregan 16 variables al archivo .env que apoyan a la funcionalidad de LlaveMX. De esas variables solo debe ajustar las primeras 6. 
+<table>
+  <colgroup>
+    <col style="width:25%">
+    <col style="width:75%">
+  </colgroup>
+  <thead>
+    <tr>
+      <th>Columna 1 (25%)</th>
+      <th>Columna 2 (75%)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Contenido corto</td>
+      <td>Contenido más largo que ocupa el resto del ancho</td>
+    </tr>
+    <tr>
+      <td>Otra fila</td>
+      <td>Más detalles aquí</td>
+    </tr>
+  </tbody>
+</table>
+
 | Variable                  | Descripción                                                                                    |
 |---------------------------|------------------------------------------------------------------------------------------------|
 | LLAVE_APP_NAME            | String del nombre de la aplicación que se mostrará en el login                                 |
