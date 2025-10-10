@@ -19,7 +19,7 @@ src/
 
 ## Instalación
 
-### Instalación desde el repositorio GitHub
+### Instalación desde el repositorio GitHub (¡Recomendada!)
 
 Modificaque el composer.json del proyecto y añadir el repositorio del paquete DTICCFCRL/paquete-conexion-api-llave-mx-laravel para poder instalarlo mediante composer.
 > **Nota:** Revise si ya tenía previamente la definición "minimum-stability", si es así solo deje una con el valor "dev". Tambien, revise la definición "prefer-stable" que no se duplique y tenga el valor "true". 
@@ -40,7 +40,7 @@ Ejecute el siguiente comando para instalar el paquete LlaveMX via Composer
 composer require dticcfcrl/paquete-conexion-api-llave-mx-laravel:v0.2.10
 ```
 
-### Instalación desde el directorio local del repositorio
+### Instalación desde el directorio local del repositorio (En caso de fallar la anterior)
 
 En caso de tener problemas para instalar el paquete directamente desde GitHub, proceda a descargar el repositorio y dejarlo al mismo nivel que el directorio del proyecto en que esta trabajando y desea implementarle LlaveMX.
 
@@ -65,18 +65,28 @@ composer require dticcfcrl/paquete-conexion-api-llave-mx-laravel
 ```
 > **Nota:** La versión que se instalará dependerá de la versión que se tenga bajada del repositorio del paquete DTICCFCRL/paquete-conexion-api-llave-mx-laravel. 
 
-### Desinstalando el paquete
-
-Si requiere remover el paquete ejecute el comando:
-``` bash
-composer remove dticcfcrl/paquete-conexion-api-llave-mx-laravel
-```
-> **Nota:** El proceso de instalación coloca en los directorios de vistas, controladores, rutas, helpers y services archivos de la funcionalidad de LlaveMX preconstruida. Si procede a desinstalar estos no serán removidos por lo que deberá eliminarlos manualmente.
-
 ## Uso
 
-- Paso 1:  `npm run build` Ejecutar el comando de compilación del proyecto dado que el paquete integra una hoja de estilos que ya a sido añadida (resources/sass/app.scss).
-- Paso 2:  `php artisan config:clear` Ajustar las variables .env (LLAVE_XXXX) y limpiar la cache.
+Una vez instalado el paquete y que se han desplegado en el proyecto las vistas, controladores, rutas, helpers y services de la funcionalidad de LlaveMX proceda con los siguientes pasos para integrarlos a su proyecto.
+
+- Paso 1:  Ejecutar el comando de compilación del proyecto dado que el paquete integra una hoja de estilos que ya ha sido añadida (resources/sass/app.scss).
+``` bash
+npm run build
+```
+- Paso 2:  Ajustar las variables .env (inician con LLAVE_XXXX) y limpiar la cache. 
+> **Nota:** Al instalar el paquete por primer vez, se agregan 16 variables al archivo .env que apoyan a la funcionalidad de LlaveMX. De esas variables solo debe ajustar las primeras 6. 
+| Variable                  | Descripción                                                                                    |
+|---------------------------|------------------------------------------------------------------------------------------------|
+| LLAVE_APP_NAME            | String del nombre de la aplicación que se mostrará en el login                                 |
+| LLAVE_CLIENT_ID           | Valor obtenido al realizar el registro de su aplicación en LlaveMX                             |
+| LLAVE_SECRET_CODE         | Valor obtenido al realizar el registro de su aplicación en LlaveMX                             |
+| LLAVE_BASICAUTH_USER      | Valor obtenido al realizar el registro de su aplicación en LlaveMX                             |
+| LLAVE_BASICAUTH_PASSWORD  | Valor obtenido al realizar el registro de su aplicación en LlaveMX                             |
+| LLAVE_URL_REDIRECT        | URL de su aplicación (debe concluir con /llavemx/callback), el callback lo integra el paquete  |
+
+``` bash
+php artisan config:clear
+```
 - Paso 3:  `@include('llavemx.partials.login')` Ajustar la vista de login (resources/views/auth/login.blade.php) para cortar el login viejo e incluir el partial al login de LlaveMX.
 - Paso 4:  El login viejo colocarlo en la vista login_old de LlaveMX (resources/views/llavemx/partials/login_old.blade.php).
 - Paso 5:  Ajustar el header para agregar en el menú la opción de "Cambiar de cuenta" si se detecta que tiene varios roles (Ej. resources/view/layouts/admin_header.blade.php y resources/view/layouts/header.blade.php).

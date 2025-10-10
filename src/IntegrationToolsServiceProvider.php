@@ -44,7 +44,7 @@ class IntegrationToolsServiceProvider extends ServiceProvider
      *   ...
      *   @include('llavemx.partials.login')
      * PASO 7. El login viejo colocarlo en la vista login_old de llavemx (resources/views/llavemx/partials/login_old.blade.php)
-     * PASO 8. (AUTOMÁTICO) Incorporar la ruta llavemx en el route service provider (app/Providers/RouteServiceProvider.php)
+     * PASO 8. Incorporar la ruta llavemx en el route service provider (app/Providers/RouteServiceProvider.php)
      *    dentro del metodo map()
      *   public function map()
      *   {
@@ -55,35 +55,20 @@ class IntegrationToolsServiceProvider extends ServiceProvider
      * 	 protected function mapLlaveMXRoutes()
      *   {
      *       Route::prefix('llavemx')
-     *           ->middleware('system')
+     *           ->middleware('web')
      *           ->namespace($this->namespace)
      *           ->group(base_path('routes/llavemx.php'));
      *   }
-     * PASO 9. (AUTOMÁTICO) Agregar el helper de LlaveMX en composer.json
+     * PASO 9. Agregar el helper de LlaveMX en composer.json
      *   ...
-     *   "autoload-dev": { 
-     *      "files": [
+     *   "autoload": {
+     *       ...
+     *       "files": [
      *          "app/Helpers/llavemx.php"
-     *      ]
-     *   },
+     *       ]
+     *    },
      * PASO 10. Ajustar el header para mostrar la opción de cambiar de usuario si se detecta que tiene varios roles
-     *    en las vistas admin_header (resources/view/layouts/admin_header.blade.php) y header (resources/view/layouts/header.blade.php)
-     * 
-     *  ...
-     *  @if (Cookie::get('j7pk19') !== null)
-     *  <a class="dropdown-item-custom" id="custon-selector" href="{{ route('llavemx.selector') }}">
-     *      <svg xmlns="http://www.w3.org/2000/svg" width="24"
-     *          height="24" viewBox="0 0 150 150">
-     *          <circle cx="40.5" cy="28.99" r="13.98"/>
-     *          <path d="M44.71,45.29H36.29A20.29,20.29,0,0,0,16,65.56v7.1A2.33,2.33,0,0,0,18.35,75h44.3A2.33,2.33,0,0,0,65,72.66v-7.1A20.29,20.29,0,0,0,44.71,45.29Z"/>
-     *          <circle cx="109.5" cy="88.99" r="13.98"/>
-     *          <path d="M113.71,105.29h-8.42A20.29,20.29,0,0,0,85,125.56v7.1A2.33,2.33,0,0,0,87.35,135h44.3a2.33,2.33,0,0,0,2.33-2.33v-7.1A20.29,20.29,0,0,0,113.71,105.29Z"/>
-     *          <path d="M120.41,45.16a4,4,0,0,0-5.43,1.6l-.73,1.34a34,34,0,0,0-27-21.16,4,4,0,1,0-1.09,7.92,26,26,0,0,1,20.9,16.91L103.86,50A4,4,0,1,0,100,57l10.46,5.71.18.1.06,0h0a3.56,3.56,0,0,0,.7.29l.21.06a5,5,0,0,0,.56.09l.34,0a1.48,1.48,0,0,0,.21,0,2.85,2.85,0,0,0,.29,0l.27,0a3.7,3.7,0,0,0,.55-.14l.17,0a4,4,0,0,0,2.09-1.83L122,50.59A4,4,0,0,0,120.41,45.16Z"/>
-     *          <path d="M29.59,104.84a4,4,0,0,0,5.43-1.6l.73-1.34a34,34,0,0,0,27,21.16,4,4,0,1,0,1.09-7.92,26,26,0,0,1-20.9-16.91l3.2,1.75A4,4,0,0,0,50,93L39.52,87.25l-.18-.1-.06,0h0a3.56,3.56,0,0,0-.7-.29l-.21-.06a5,5,0,0,0-.56-.09l-.34,0a1.48,1.48,0,0,0-.21,0,2.85,2.85,0,0,0-.29,0l-.27,0a3.7,3.7,0,0,0-.55.14l-.17,0a4,4,0,0,0-2.09,1.83L28,99.41A4,4,0,0,0,29.59,104.84Z"/>
-     *      </svg>
-     *      Cambiar de cuenta
-     *  </a>
-     *  @endif
+     *          en las vistas admin_header (resources/view/layouts/admin_header.blade.php) y header (resources/view/layouts/header.blade.php)
      * PASO 11. (NO APLICAR EN EL NUEVO CORE) Ajuste en el service core (app/Services/CoreService.php) para encapsular en try-catch la obtención del usuario autenticado del core
      *  ...
      *  public function __construct()
