@@ -12,7 +12,7 @@ Paquete del Centro Federal de Conciliación y Registros Laborales (CFCRL) para i
 
 El presente paquete dticcfcrl/paquete-conexion-api-llave-mx-laravel se encuentra integrado de los siguientes directorios:
 
-```    
+```
 config/
 src/
 ```
@@ -23,7 +23,7 @@ src/
 
 Modificaque el composer.json del proyecto y añadir el repositorio del paquete DTICCFCRL/paquete-conexion-api-llave-mx-laravel para poder instalarlo mediante composer.
 > **Nota:** Revise si ya tenía previamente la definición "minimum-stability", si es así solo deje una con el valor "dev". Tambien, revise la definición "prefer-stable" que no se duplique y tenga el valor "true". 
-``` bash
+``` json
     ...
     "repositories": [
         {
@@ -36,7 +36,7 @@ Modificaque el composer.json del proyecto y añadir el repositorio del paquete D
     ...
 ```
 Ejecute el siguiente comando para instalar el paquete LlaveMX via Composer
-``` bash
+``` shell
 composer require dticcfcrl/paquete-conexion-api-llave-mx-laravel:v0.2.10
 ```
 
@@ -46,7 +46,7 @@ En caso de tener problemas para instalar el paquete directamente desde GitHub, p
 
 Modificaque el composer.json del proyecto y añadir la ruta al paquete DTICCFCRL/paquete-conexion-api-llave-mx-laravel para poder instalarlo mediante composer.
 > **Nota:** Revise si ya tenía previamente la definición "minimum-stability", si es así solo deje una con el valor "dev". Tambien, revise la definición "prefer-stable" que no se duplique y tenga el valor "true".
-``` bash
+``` json
     ...
     "repositories": {
         "dticcfcrl-local": {
@@ -60,7 +60,7 @@ Modificaque el composer.json del proyecto y añadir la ruta al paquete DTICCFCRL
     ...
 ```
 Ejecute el siguiente comando para instalar el paquete LlaveMX via Composer
-``` bash
+``` shell
 composer require dticcfcrl/paquete-conexion-api-llave-mx-laravel
 ```
 > **Nota:** La versión que se instalará dependerá de la versión que se tenga bajada del repositorio del paquete DTICCFCRL/paquete-conexion-api-llave-mx-laravel. 
@@ -70,11 +70,11 @@ composer require dticcfcrl/paquete-conexion-api-llave-mx-laravel
 Una vez instalado el paquete y que se han desplegado en el proyecto las vistas, controladores, rutas, helpers y services de la funcionalidad de LlaveMX proceda con los siguientes pasos para integrarlos apropiadamente a su proyecto.
 
 - Paso 1:  Ejecutar el comando de compilación del proyecto dado que el paquete integra una hoja de estilos que ya ha sido añadida (resources/sass/app.scss).
-``` bash
+``` shell
 npm run build
 ```
 - Paso 2:  Ajustar las variables .env (inician con LLAVE_XXXX) y limpiar la cache. 
-> **Nota:** Al instalar el paquete por primer vez, se agregan 16 variables al archivo .env que apoyan a la funcionalidad de LlaveMX. De esas variables solo debe ajustar las primeras 6. 
+> **Nota:** Al instalar el paquete por primer vez, se agregan 19 variables al archivo .env que apoyan a la funcionalidad de LlaveMX. De esas variables solo debe ajustar las primeras 6. 
 
 | Variable                  | Descripción                                                                                    |
 |---------------------------|------------------------------------------------------------------------------------------------|
@@ -85,18 +85,25 @@ npm run build
 | LLAVE_BASICAUTH_PASSWORD  | Valor obtenido al realizar el registro de su aplicación en LlaveMX                             |
 | LLAVE_URL_REDIRECT        | URL de su aplicación (debe concluir con /llavemx/callback), el callback lo integra el paquete  |
 
+> **Nota:** Si su aplicación maneja comunicación con el CORE revise que las variables en el .env sean CORE_API_URL, CLIENT_ID y CLIENT_SECRET. En caso contrario ajustar las variables LLAVE_CORE_API_URL, LLAVE_CORE_CLIENT_ID y LLAVE_CORE_CLIENT_SECRET a las variables que correspondan o asignar directamente el valor.
 ``` bash
+#LlaveMX credenciales al Core
+LLAVE_CORE_API_URL="${CORE_API_URL}"
+LLAVE_CORE_CLIENT_ID=${CLIENT_ID}
+LLAVE_CORE_CLIENT_SECRET=${CLIENT_SECRET}
+```
+``` shell
 php artisan config:clear
 ```
 - Paso 3: Ajustar la vista de login (resources/views/auth/login.blade.php) para cortar el login viejo e incluir el partial al login de LlaveMX.
-``` bash
+``` php
 @include('llavemx.partials.login')
 ```
 - Paso 4:  El login viejo lo guardaremos en la vista login_old de LlaveMX (resources/views/llavemx/partials/login_old.blade.php).
 > **Nota:** Si el partial login_old.blade.php tiene información favor de borrarla y colocar su script del login viejo. 
 - Paso 5:  Modificar el controller ApiLlaveMXController (app/Http/Controller/ApiLlaveMXController.php) revisando y corrigiendo la variable $home_login al url del login, el query de búsqueda de usuarios acorde a la estructura de seguridad del proyecto así como la sección de rutas acorde al rol una vez que se ha autentificado el usuario.
 > **Nota:** Elimine el modelo UsuarioSolicitud sino existe en su proyecto, así mismo los bloques de código que hacen referencia a él en las líneas 126 a 146.
-``` bash
+``` php
 use App\Models\UsuarioSolicitud;
 ...
 try {
@@ -118,7 +125,7 @@ try {
 } catch (Exception $e) {}
 ```
 > **Nota:** Para facilitar la edición del controller busque los comentarios que indican "MODIFICAR:".
-``` bash
+``` php
     /*
     * MODIFICAR:
     * Ajustar a la pagina de inicio o login del sistema
@@ -141,7 +148,7 @@ try {
                         [$correo, $curp, $nombre, $apellido1, $apellido2]);
 ```
 - Paso 6:  **(Si su proyecto soporta varias cuentas de usuario y tiene un menú superior)** Ajustar el header para agregar en el menú la opción de "Cambiar de cuenta" si se detecta que tiene varios roles (Ej. resources/view/layouts/admin_header.blade.php y resources/view/layouts/header.blade.php).
-``` bash
+``` php
 @if (Session::get('cuentas') !== null)
     <a class="dropdown-item-custom" id="custom-selector" href="{{ route('llavemx.selector') }}">
         <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24"
@@ -167,7 +174,7 @@ try {
 @endif
 ```
 - Paso 7:  **(Si su proyecto permite crear cuentas de usuario y tiene un menú superior)** Ajustar el header para agregar en el menú la opción de "Registrar cuenta" (Ej. resources/view/layouts/admin_header.blade.php y resources/view/layouts/header.blade.php).
-``` bash
+``` php
 <a class="dropdown-item-custom" id="custom-new-account" href="" data-toggle="modal" data-target="#newAccountModal">
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 100 125">
         <defs>
@@ -187,15 +194,17 @@ try {
 </a>
 ```
 Al final del código del header incluya el partial de la modal para el registro de nueva cuenta
-``` bash
+``` php
 @include('llavemx.partials.new_account', ['modal_name' => 'newAccountModal'])
 ```
-- Paso 8:  Revise que el Core este usando la rama "origin/core_llavemx" ya que guarda ahora todos los datos recuperados de LlaveMX, así mismo ejecute las migraciones (`php artisan migrate`).
-
+- Paso 8:  Revise que el Core este usando la rama "origin/core_llavemx" ya que guarda ahora todos los datos recuperados de LlaveMX, así mismo ejecute las migraciones.
+``` shell
+php artisan migrate
+```
 ## Notas adicionales
 
 En caso de que la ruta "[SERVIDOR]/llavemx/callback" no responda, proceda ha incorporar manualmente la ruta llavemx en el route service provider (app/Providers/RouteServiceProvider.php)
-``` bash
+``` php
     public function map()
     {
         ...
