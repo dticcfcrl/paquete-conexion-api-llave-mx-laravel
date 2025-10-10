@@ -23,6 +23,11 @@ use App\Models\UsuarioSolicitud;
 
 class ApiLlaveMXController extends Controller
 {
+    /*
+    * MODIFICAR:
+    * Ajustar a la pagina de inicio o login del sistema
+    */
+    private $home_login = '/';
     public function login()
     {
         //Generar el state y guardarlo en una session
@@ -33,8 +38,8 @@ class ApiLlaveMXController extends Controller
         ];
         $url = env('LLAVE_ENDPOINT').env('LLAVE_ENDPOINT_LOGIN').'?'.http_build_query($params);
         //Si no se tiene configurado el endpoint de llaveMX, regresar al inicio con mensaje de error
-        if (!env('LLAVE_ENDPOINT')) return redirect()->route('inicio')->with('error','El servicio de autenticación LlaveMX no está disponible en este momento. Inténtelo más tarde.');
-
+        if (!env('LLAVE_ENDPOINT')) return Redirect::to($this->home_login)->withErrors(['msg' => 'El servicio de autenticación LlaveMX no está disponible en este momento. Inténtelo más tarde.']);
+        
         return Redirect::to($url);
     }
 
@@ -43,7 +48,7 @@ class ApiLlaveMXController extends Controller
         $url = env('LLAVE_ENDPOINT').env('LLAVE_ENDPOINT_CREATEACCOUNT');
         
         //Si no se tiene configurado el endpoint de llaveMX, regresar al inicio con mensaje de error
-        if (!env('LLAVE_ENDPOINT')) return redirect()->route('inicio')->with('error','El servicio de autenticación LlaveMX no está disponible en este momento. Inténtelo más tarde.');
+        if (!env('LLAVE_ENDPOINT')) return Redirect::to($this->home_login)->withErrors(['msg' => 'El servicio de autenticación LlaveMX no está disponible en este momento. Inténtelo más tarde.']);
 
         return Redirect::to($url);
     }
@@ -191,7 +196,7 @@ class ApiLlaveMXController extends Controller
             }
             return redirect('/revision-tramites');
         }
-        return Redirect::to('/');
+        return Redirect::to($this->home_login);
     }
 
     public function callback(Request $request)
@@ -208,20 +213,20 @@ class ApiLlaveMXController extends Controller
         $state_csrf = Session::get('state_csrf');
         if($state_csrf != $request->state){
             //Regresamos al login con error de state inválido
-            return Redirect::to('/')->withErrors(['msg' => 'Error de validación de seguridad. Inténtelo de nuevo.']);
+            return Redirect::to($this->home_login)->withErrors(['msg' => 'Error de validación de seguridad. Inténtelo de nuevo.']);
         }
         $llave = new LlaveMXService();
         //PASO 02. Transformar el CODE por un TOKEN de LlaveMX
         $token = $llave->getToken($request->code);
         if(!$token){
             //Regresamos al login con error de obtención de token
-            return Redirect::to('/')->withErrors(['msg' => 'Error al obtener el token de autenticación. Inténtelo de nuevo.']);
+            return Redirect::to($this->home_login)->withErrors(['msg' => 'Error al obtener el token de autenticación. Inténtelo de nuevo.']);
         }
         //PASO 03. Recuperar los datos del usuario y persona moral usando el token
         $data_user = $llave->getUser($token);
         if(!$data_user){
             //Regresamos al login con error de obtención de datos del usuario
-            return Redirect::to('/')->withErrors(['msg' => 'Error al obtener los datos del usuario desde LlaveMX. Inténtelo de nuevo.']);
+            return Redirect::to($this->home_login)->withErrors(['msg' => 'Error al obtener los datos del usuario desde LlaveMX. Inténtelo de nuevo.']);
         }
         $data_morales = $llave->getPersonasMorales($token);
         //Registrar/Actualizar la info del usuario al core
@@ -357,7 +362,7 @@ class ApiLlaveMXController extends Controller
             Session::forget('state_csrf');
         }
         //PASO 07. Redirigir al usuario a la página principal del sistema acorde a su rol
-        if (!Auth::check()) return redirect()->route('inicio')->with('error','No se logro iniciar sesión con el usuario. Inténtelo de nuevo.');
+        if (!Auth::check()) return Redirect::to($this->home_login)->withErrors(['msg' => 'No se logro iniciar sesión con el usuario. Inténtelo de nuevo.']);
         /*
         * MODIFICAR:
         * Ajustar segun roles del sistema la bandeja a la que manda
@@ -376,7 +381,7 @@ class ApiLlaveMXController extends Controller
             $user_id = Crypt::decryptString($hash_user_id);
             $user = User::find($user_id);
             if(!isset($user->id)){
-                return redirect()->route('inicio')->with('error','No se encontró el usuario seleccionado. Inténtelo de nuevo.');
+                return Redirect::to($this->home_login)->withErrors(['msg' => 'No se encontró el usuario seleccionado. Inténtelo de nuevo.']);
             }
             Auth::login($user, true);
             //Abrimos sesión en registro
@@ -389,7 +394,7 @@ class ApiLlaveMXController extends Controller
             //Destruimos la session de state
             Session::forget('state_csrf');
             //PASO 07. Redirigir al usuario a la página principal del sistema acorde a su rol
-            if (!Auth::check()) return redirect()->route('inicio')->with('error','No se logro iniciar sesión con el usuario seleccionado. Inténtelo de nuevo.');
+            if (!Auth::check()) return Redirect::to($this->home_login)->withErrors(['msg' => 'No se logro iniciar sesión con el usuario seleccionado. Inténtelo de nuevo.']);
         }
         /*
         * MODIFICAR:
@@ -403,7 +408,7 @@ class ApiLlaveMXController extends Controller
             }
             return redirect('/revision-tramites');
         }
-        return Redirect::to('/');
+        return Redirect::to($this->home_login);
     }
 
     public function selector()
@@ -412,7 +417,7 @@ class ApiLlaveMXController extends Controller
             $users_id = explode(',', Session::get('cuentas'));
             $users = User::whereIn('id',$users_id)->get();
             if(!isset($users)){
-                return redirect()->route('inicio')->with('error','Error al recuperar las cuentas de usuario. Inténtelo de nuevo.');
+                return Redirect::to($this->home_login)->withErrors(['msg' => 'Error al recuperar las cuentas de usuario. Inténtelo de nuevo.']);
             }
             return view('llavemx/selector', compact('users'));
         }
@@ -429,6 +434,6 @@ class ApiLlaveMXController extends Controller
             }
             return redirect('/revision-tramites');
         }
-        return Redirect::to('/');
+        return Redirect::to($this->home_login);
     }
 }
