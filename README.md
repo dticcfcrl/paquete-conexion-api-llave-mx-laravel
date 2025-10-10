@@ -23,7 +23,7 @@ src/
 
 Modificaque el composer.json del proyecto y añadir el repositorio del paquete DTICCFCRL/paquete-conexion-api-llave-mx-laravel para poder instalarlo mediante composer.
 > **Nota:** Revise si ya tenía previamente la definición "minimum-stability", si es así solo deje una con el valor "dev". Tambien, revise la definición "prefer-stable" que no se duplique y tenga el valor "true". 
-``` json
+``` php
     ...
     "repositories": [
         {
@@ -46,7 +46,7 @@ En caso de tener problemas para instalar el paquete directamente desde GitHub, p
 
 Modificaque el composer.json del proyecto y añadir la ruta al paquete DTICCFCRL/paquete-conexion-api-llave-mx-laravel para poder instalarlo mediante composer.
 > **Nota:** Revise si ya tenía previamente la definición "minimum-stability", si es así solo deje una con el valor "dev". Tambien, revise la definición "prefer-stable" que no se duplique y tenga el valor "true".
-``` json
+``` php
     ...
     "repositories": {
         "dticcfcrl-local": {
@@ -126,26 +126,26 @@ try {
 ```
 > **Nota:** Para facilitar la edición del controller busque los comentarios que indican "MODIFICAR:".
 ``` php
-    /*
-    * MODIFICAR:
-    * Ajustar a la pagina de inicio o login del sistema
-    */
-    private $home_login = '/';
-    ...
-    /*
-    * MODIFICAR:
-    * Ajustar segun estructura de usuarios del sistema
-    */
-    $data = DB::select("SELECT u.id as user_id
-                        FROM public.users u
-                        WHERE (UPPER(u.email) = UPPER(?) OR UPPER(u.curp) = UPPER(?) OR 
-                            (
-                                unaccent(UPPER(u.first_name)) = unaccent(UPPER(?)) AND 
-                                unaccent(UPPER(u.last_name)) = unaccent(UPPER(?)) AND 
-                                unaccent(UPPER(u.second_last_name)) = unaccent(UPPER(?))
-                            )
-                            )",
-                        [$correo, $curp, $nombre, $apellido1, $apellido2]);
+/*
+* MODIFICAR:
+* Ajustar a la pagina de inicio o login del sistema
+*/
+private $home_login = '/';
+...
+/*
+* MODIFICAR:
+* Ajustar segun estructura de usuarios del sistema
+*/
+$data = DB::select("SELECT u.id as user_id
+                    FROM public.users u
+                    WHERE (UPPER(u.email) = UPPER(?) OR UPPER(u.curp) = UPPER(?) OR 
+                        (
+                            unaccent(UPPER(u.first_name)) = unaccent(UPPER(?)) AND 
+                            unaccent(UPPER(u.last_name)) = unaccent(UPPER(?)) AND 
+                            unaccent(UPPER(u.second_last_name)) = unaccent(UPPER(?))
+                        )
+                        )",
+                    [$correo, $curp, $nombre, $apellido1, $apellido2]);
 ```
 - Paso 6:  **(Si su proyecto soporta varias cuentas de usuario y tiene un menú superior)** Ajustar el header para agregar en el menú la opción de "Cambiar de cuenta" si se detecta que tiene varios roles (Ej. resources/view/layouts/admin_header.blade.php y resources/view/layouts/header.blade.php).
 ``` php
