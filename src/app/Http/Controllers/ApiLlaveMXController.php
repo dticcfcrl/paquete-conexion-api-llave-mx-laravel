@@ -13,7 +13,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Session;
 
-use App\Services\{LlaveMXService, Users, CoreService};
+use App\Services\{LlaveMXService};
 use App\Models\{User, Role, Bitacora};
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -314,12 +314,11 @@ class ApiLlaveMXController extends Controller
                 //Abrimos sesión en la plataforma
                 Auth::login($user, true);
                 //Abrimos sesión en registro
-                $core_service = new CoreService();
                 $data_core = [
                     'email' => $user->email,
                     'user_core_id' => $user->user_core_id
                 ];
-                $response = $core_service->loginInCore($data_core);
+                $response = $llave->loginInCore($data_core);
                 //Destruimos la session de state
                 Session::forget('state_csrf');
             }
@@ -352,12 +351,11 @@ class ApiLlaveMXController extends Controller
             //Abrimos sesión en la plataforma
             Auth::login($user, true);
             //Abrimos sesión en registro
-            $core_service = new CoreService();
             $data_core = [
                 'email' => $user->email,
                 'user_core_id' => $user->user_core_id
             ];
-            $response = $core_service->loginInCore($data_core);
+            $response = $llave->loginInCore($data_core);
             //Destruimos la session de state
             Session::forget('state_csrf');
         }
@@ -385,12 +383,12 @@ class ApiLlaveMXController extends Controller
             }
             Auth::login($user, true);
             //Abrimos sesión en registro
-            $core_service = new CoreService();
+            $llave = new LlaveMXService();
             $data_core = [
                 'email' => $user->email,
                 'user_core_id' => $user->user_core_id
             ];
-            $response = $core_service->loginInCore($data_core);
+            $response = $llave->loginInCore($data_core);
             //Destruimos la session de state
             Session::forget('state_csrf');
             //PASO 07. Redirigir al usuario a la página principal del sistema acorde a su rol

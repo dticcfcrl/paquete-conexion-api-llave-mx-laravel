@@ -5,7 +5,7 @@ Paquete del Centro Federal de Conciliación y Registros Laborales (CFCRL) para i
 ## Info
 
 - [Repositorio Github](https://github.com/dticcfcrl/paquete-conexion-api-llave-mx-laravel).
-- Laravel ^7.0 | ^8.0 | ^9.0 | ^10.0 | ^11.0 | ^12.0 
+- Laravel ^7.0 | ^8.0 | ^9.0 | ^10.0 | ^11.0 | ^12.0 | ^13.0 
 - PHP ^7.0 | ^8.0
 
 ## Estructura
@@ -37,7 +37,7 @@ Modificaque el composer.json del proyecto y añadir el repositorio del paquete D
 ```
 Ejecute el siguiente comando para instalar el paquete LlaveMX via Composer
 ``` shell
-composer require dticcfcrl/paquete-conexion-api-llave-mx-laravel:v0.2.10
+composer require dticcfcrl/paquete-conexion-api-llave-mx-laravel:v0.2.11
 ```
 
 ### Instalación desde el directorio local del repositorio (En caso de fallar la anterior)
@@ -95,35 +95,13 @@ LLAVE_CORE_CLIENT_SECRET=${CLIENT_SECRET}
 ``` shell
 php artisan config:clear
 ```
-- Paso 3: Ajustar la vista de login (resources/views/auth/login.blade.php) para cortar el login viejo e incluir el partial al login de LlaveMX.
+- Paso 3: Ajustar la vista del login (resources/views/auth/login.blade.php) para cortar el login viejo e incluir el partial al login de LlaveMX.
 ``` php
 @include('llavemx.partials.login')
 ```
-- Paso 4:  El login viejo lo guardaremos en la vista login_old de LlaveMX (resources/views/llavemx/partials/login_old.blade.php).
+- Paso 4: Guardar el login viejo en la vista login_old de LlaveMX (resources/views/llavemx/partials/login_old.blade.php).
 > **Nota:** Si el partial login_old.blade.php tiene información favor de borrarla y colocar su script del login viejo. 
-- Paso 5:  Modificar el controller ApiLlaveMXController (app/Http/Controller/ApiLlaveMXController.php) revisando y corrigiendo la variable $home_login al url del login, el query de búsqueda de usuarios acorde a la estructura de seguridad del proyecto así como la sección de rutas acorde al rol una vez que se ha autentificado el usuario.
-> **Nota:** Elimine el modelo UsuarioSolicitud sino existe en su proyecto, así mismo los bloques de código que hacen referencia a él en las líneas 126 a 146.
-``` php
-use App\Models\UsuarioSolicitud;
-...
-try {
-    $solicitud = UsuarioSolicitud::whereCorreo($correo)->first();
-    if (isset($solicitud->id)) {
-        if (strpos($correo, 'core_') === false)
-            $this->sendMailValidarcorreo($correo, $solicitud->token_solicitud);
-    }else{
-            $token = Str::uuid();
-            $solicitud = UsuarioSolicitud::create([
-                'correo' => $correo,
-                'token_solicitud' => $token,
-                'fecha_solicitud' => date('Y-m-d H:i:s'),
-            ]);
-            if (strpos($correo, 'core_') === false)
-                $this->sendMailValidarcorreo($correo, $token);
-    }
-    $message = 'Para continuar con tu registro, deberás confirmar tu correo electrónico dando clic en el enlace que te hemos enviado a "' . $correo . '".';
-} catch (Exception $e) {}
-```
+- Paso 5: Modificar el controller ApiLlaveMXController (app/Http/Controller/ApiLlaveMXController.php) revisando y corrigiendo la variable $home_login al url del login, el query de búsqueda de usuarios acorde a la estructura de seguridad del proyecto así como la sección de rutas acorde al rol una vez que se ha autentificado el usuario.
 > **Nota:** Para facilitar la edición del controller busque los comentarios que indican "MODIFICAR:".
 ``` php
 /*
@@ -147,7 +125,29 @@ $data = DB::select("SELECT u.id as user_id
                         )",
                     [$correo, $curp, $nombre, $apellido1, $apellido2]);
 ```
-- Paso 6:  Registrar en el route service provider (app/Providers/RouteServiceProvider.php) las rutas llavemx.
+> **Nota:** Elimine el modelo UsuarioSolicitud sino existe en su proyecto, así mismo los bloques de código que hacen referencia a él en las líneas 126 a 146.
+``` php
+use App\Models\UsuarioSolicitud;
+...
+try {
+    $solicitud = UsuarioSolicitud::whereCorreo($correo)->first();
+    if (isset($solicitud->id)) {
+        if (strpos($correo, 'core_') === false)
+            $this->sendMailValidarcorreo($correo, $solicitud->token_solicitud);
+    }else{
+            $token = Str::uuid();
+            $solicitud = UsuarioSolicitud::create([
+                'correo' => $correo,
+                'token_solicitud' => $token,
+                'fecha_solicitud' => date('Y-m-d H:i:s'),
+            ]);
+            if (strpos($correo, 'core_') === false)
+                $this->sendMailValidarcorreo($correo, $token);
+    }
+    $message = 'Para continuar con tu registro, deberás confirmar tu correo electrónico dando clic en el enlace que te hemos enviado a "' . $correo . '".';
+} catch (Exception $e) {}
+```
+- Paso 6: Registrar en el route service provider (app/Providers/RouteServiceProvider.php) las rutas llavemx.
 ``` php
     public function map()
     {
@@ -158,12 +158,12 @@ $data = DB::select("SELECT u.id as user_id
     protected function mapLlaveMXRoutes()
     {
         Route::prefix('llavemx')
-            ->middleware('system')
+            ->middleware('web')
             ->namespace($this->namespace)
             ->group(base_path('routes/llavemx.php'));
     }
 ```
-- Paso 7:  Registrar en el composer el helper de LlaveMX (composer.json)
+- Paso 7: Registrar en el composer el helper de LlaveMX (composer.json)
 ``` bash
 ...
 "autoload": {
@@ -173,7 +173,7 @@ $data = DB::select("SELECT u.id as user_id
     ]
 },
 ```
-- Paso 8:  Desinstalar el paquete LlaveMX. Al realizar esta acción las vistas, controladores, rutas, helpers y services de la funcionalidad de LlaveMX preconstruida permanecerán en el proyecto.
+- Paso 8:  Desinstalar el paquete LlaveMX. Al realizar esta acción las vistas, controladores, rutas, helpers y services de la funcionalidad de LlaveMX preconstruida permanecerán en el proyecto y facilitará su despliegue en producción sin dependencia del paquete.
 ``` bash
 composer remove dticcfcrl/paquete-conexion-api-llave-mx-laravel
 ```

@@ -14,12 +14,16 @@ class LlaveMXService
     private $url;
     private $url_core;
     private $token_core;
+    private $client_id;
+    private $client_secret;
 
     public function __construct()
     {
         $this->http = new Client();
         $this->url = env('LLAVE_ENDPOINT');
-        $this->url_core = config('services.login_services.core_api_url');
+        $this->url_core = env('LLAVE_CORE_API_URL');
+        $this->client_id = env('LLAVE_CORE_CLIENT_ID');
+        $this->client_secret = env('LLAVE_CORE_CLIENT_SECRET');
         //Seteamos el token para acceder al core
         $this->token_core = $this->getTokenCore();
     }
@@ -32,8 +36,8 @@ class LlaveMXService
             try{
                 $response = $this->http->post($this->url_core . 'oauth/token', [
                     'form_params'       => [
-                        'client_id'         => config('services.login_services.client_id'),
-                        'client_secret'     => config('services.login_services.client_secret'),
+                        'client_id'         => $this->client_id,
+                        'client_secret'     => $this->client_secret,
                         'scope'             => '*',
                         'grant_type'        => 'client_credentials'
                     ],
@@ -58,6 +62,28 @@ class LlaveMXService
             $token = $access_token->token;
         }
         return $token;
+    }
+
+    /**
+     * validar credenciales en el core
+     */
+    public function loginInCore($form_params)
+    {
+        try {
+            $response = $this->http->request('POST', $this->url. 'api/usuarios/autenticar', [
+                'headers' => [
+                    'Accept' => 'application/json',
+                    'Authorization' => 'Bearer ' . $this->token_core
+                ],
+
+                'form_params' => $form_params,
+                'verify' => env('LLAVE_VERIFY_SSL', true)
+            ]);
+            return json_decode((string)$response->getBody(), true);
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            $response = $e->getResponse()->getBody(true);
+            return json_decode((string)$response, true);
+        }
     }
 
     /**
@@ -123,6 +149,8 @@ class LlaveMXService
         }
         return $data;
     }
+
+
 
     /**
      * Convertir el code en token
