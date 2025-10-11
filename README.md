@@ -147,7 +147,37 @@ $data = DB::select("SELECT u.id as user_id
                         )",
                     [$correo, $curp, $nombre, $apellido1, $apellido2]);
 ```
-- Paso 6:  **(Si su proyecto soporta varias cuentas de usuario y tiene un menú superior)** Ajustar el header para agregar en el menú la opción de "Cambiar de cuenta" si se detecta que tiene varios roles (Ej. resources/view/layouts/admin_header.blade.php y resources/view/layouts/header.blade.php).
+- Paso 6:  Registrar en el route service provider (app/Providers/RouteServiceProvider.php) las rutas llavemx.
+``` php
+    public function map()
+    {
+        ...
+        $this->mapLlaveMXRoutes();
+    }
+    ...
+    protected function mapLlaveMXRoutes()
+    {
+        Route::prefix('llavemx')
+            ->middleware('system')
+            ->namespace($this->namespace)
+            ->group(base_path('routes/llavemx.php'));
+    }
+```
+- Paso 7:  Registrar en el composer el helper de LlaveMX (composer.json)
+``` bash
+...
+"autoload": {
+    ...
+    "files": [
+        "app/Helpers/llavemx.php"
+    ]
+},
+```
+- Paso 8:  Desinstalar el paquete LlaveMX. Al realizar esta acción las vistas, controladores, rutas, helpers y services de la funcionalidad de LlaveMX preconstruida permanecerán en el proyecto.
+``` bash
+composer remove dticcfcrl/paquete-conexion-api-llave-mx-laravel
+```
+- Paso 9:  **(Si su proyecto soporta varias cuentas de usuario y tiene un menú superior)** Ajustar el header para agregar en el menú la opción de "Cambiar de cuenta" si se detecta que tiene varios roles (Ej. resources/view/layouts/admin_header.blade.php y resources/view/layouts/header.blade.php).
 ``` php
 @if (Session::get('cuentas') !== null)
     <a class="dropdown-item-custom" id="custom-selector" href="{{ route('llavemx.selector') }}">
@@ -173,7 +203,7 @@ $data = DB::select("SELECT u.id as user_id
     </a>
 @endif
 ```
-- Paso 7:  **(Si su proyecto permite crear cuentas de usuario y tiene un menú superior)** Ajustar el header para agregar en el menú la opción de "Registrar cuenta" (Ej. resources/view/layouts/admin_header.blade.php y resources/view/layouts/header.blade.php).
+- Paso 10:  **(Si su proyecto permite crear cuentas de usuario y tiene un menú superior)** Ajustar el header para agregar en el menú la opción de "Registrar cuenta" (Ej. resources/view/layouts/admin_header.blade.php y resources/view/layouts/header.blade.php).
 ``` php
 <a class="dropdown-item-custom" id="custom-new-account" href="" data-toggle="modal" data-target="#newAccountModal">
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 100 125">
@@ -197,28 +227,18 @@ Al final del código del header incluya el partial de la modal para el registro 
 ``` php
 @include('llavemx.partials.new_account', ['modal_name' => 'newAccountModal'])
 ```
-- Paso 8:  Revise que el Core este usando la rama "origin/core_llavemx" ya que guarda ahora todos los datos recuperados de LlaveMX, así mismo ejecute las migraciones.
+
+## Notas adicionales (Respecto al Core)
+
+Revise que el Core este usando la rama "origin/core_llavemx" ya que guarda ahora todos los datos recuperados de LlaveMX, así mismo ejecute las migraciones.
 ``` shell
 php artisan migrate
 ```
-## Notas adicionales
-
-En caso de que la ruta "[SERVIDOR]/llavemx/callback" no responda, proceda ha incorporar manualmente la ruta llavemx en el route service provider (app/Providers/RouteServiceProvider.php)
-``` php
-    public function map()
-    {
-        ...
-        $this->mapLlaveMXRoutes();
-    }
-    ...
-    protected function mapLlaveMXRoutes()
-    {
-        Route::prefix('llavemx')
-            ->middleware('system')
-            ->namespace($this->namespace)
-            ->group(base_path('routes/llavemx.php'));
-    }
+ Y en el psql conectado a la base de datos Core ejecutar:
+ ``` shell
+> CREATE EXTENSION IF NOT EXISTS unaccent;
 ```
+
 ## Seguridad
 
 Si descubre alguna vulnerabilidad o fallo de seguridad, favor de enviar un email a jorge.ceyca@centrolaboral.gob.mx para su atención y seguimiento.

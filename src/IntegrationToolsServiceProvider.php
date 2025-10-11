@@ -22,24 +22,6 @@ class IntegrationToolsServiceProvider extends ServiceProvider
      * PASO 4. Ejecutar el comando de compilación de assets
      *    > npm run build
      * PASO 5. (AUTOMÁTICO) Agregar las variables de entorno al archivo .env
-     *   #LlaveMX BASE
-     *   LLAVE_CLIENT_ID=202508101834311980
-     *   LLAVE_SECRET_CODE=GHMfq4DijIh8y1VlXiJ5Q19LTt8LHz
-     *   LLAVE_BASICAUTH_USER=admin
-     *   LLAVE_BASICAUTH_PASSWORD=admin
-     *   LLAVE_URL_REDIRECT=http://registrolocal.centrolaboral.gob.mx/llavemx/callback #http://127.0.0.1:8000/llavemx/callback
-     *   LLAVE_ENDPOINT=https://val-llave.infotec.mx/
-     *   #LlaveMX viejo login
-     *   LLAVE_VIEJO_LOGIN_DATE=2025-08-01
-     *   LLAVE_VIEJO_LOGIN_SOLICITANTE=true
-     *   LLAVE_VIEJO_LOGIN_FUNCIONARIO=true
-     *   #LlaveMX endpoints
-     *   LLAVE_ENDPOINT_LOGIN=oauth.xhtml
-     *   LLAVE_ENDPOINT_GETTOKEN=ws/rest/oauth/obtenerToken
-     *   LLAVE_ENDPOINT_GETUSER=ws/rest/oauth/datosUsuario
-     *   LLAVE_ENDPOINT_GETROLES=ws/rest/oauth/getRolesUsuarioLogueado
-     *   LLAVE_ENDPOINT_LOGOUT=ws/rest/oauth/cerrarSesion
-     *   LLAVE_ENDPOINT_CREATEACCOUNT=RegistroCiudadano.xhtml
      * PASO 6. Ajustar la vista de login (resources/views/auth/login.blade.php) para cortar el login viejo e incluir el partial login de llavemx 
      *   ...
      *   @include('llavemx.partials.login')
