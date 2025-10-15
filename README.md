@@ -65,6 +65,15 @@ composer require dticcfcrl/paquete-conexion-api-llave-mx-laravel
 ```
 > **Nota:** La versión que se instalará dependerá de la versión que se tenga bajada del repositorio del paquete DTICCFCRL/paquete-conexion-api-llave-mx-laravel. 
 
+### Desinstalación del paquete
+
+Si requiere remover el paquete ejecute el comando:
+``` bash
+composer remove dticcfcrl/paquete-conexion-api-llave-mx-laravel
+
+```
+> \*\*Nota:\*\* El proceso de instalación coloca en los directorios de vistas, controladores, rutas, helpers y services archivos de la funcionalidad de LlaveMX preconstruida. Si procede a desinstalar estos no serán removidos por lo que deberá eliminarlos manualmente.
+
 ## Uso
 
 Una vez instalado el paquete y que se han desplegado en el proyecto las vistas, controladores, rutas, helpers y services de la funcionalidad de LlaveMX proceda con los siguientes pasos para integrarlo apropiadamente a su proyecto.
