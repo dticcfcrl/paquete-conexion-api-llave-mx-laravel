@@ -1,14 +1,19 @@
+$llavemx-brand-primary:#9d2449;
+$llavemx-gray:#dce0e0;
+$llavemx-oro:#b38e5d;
+$llavemx-spacer:22px;
+
 .btn-llavemx{
   background: #fff;
   border-radius: 3px;
-  border: solid 2px $brand-primary;
-  color: $brand-primary !important;
+  border: solid 2px $llavemx-brand-primary;
+  color: $llavemx-brand-primary !important;
   font-size: 1.12rem;
   padding: 10px 25px;
   font-weight: 500;
 
   &:hover{
-    background: $brand-primary;
+    background: $llavemx-brand-primary;
     color: #fff !important;
 
     h5 {
@@ -36,8 +41,8 @@
 
 .separador-llavemx {
     width: 100%;
-    border-top: 1px solid $gray;
-    margin-bottom: $spacer;
+    border-top: 1px solid $llavemx-gray;
+    margin-bottom: $llavemx-spacer;
 
     &.limite {
         max-width: 560px;
@@ -47,7 +52,7 @@
         display: block;
         width: 35px;
         height: 5px;
-        background: $oro;
+        background: $llavemx-oro;
     }
 }
 
