@@ -219,4 +219,29 @@ class LlaveMXService
         }
         return false;
     }
+
+    /**
+     * Forzar el cierre de sesión del usuario en LlaveMX
+     */
+    public function closeSession($token)
+    {
+        try {
+            $response = $this->http->post($this->url.env('LLAVE_ENDPOINT_LOGOUT'), [
+                'auth' => [env('LLAVE_BASICAUTH_USER'), env('LLAVE_BASICAUTH_PASSWORD')],
+                'headers' => [
+                    'Accept' => 'application/json',
+                    'Content-Type' => 'application/json',
+                    'accessToken' => $token
+                ],
+            ]);
+            return json_decode((string)$response->getBody(), true);
+        }catch(\GuzzleHttp\Exception\ClientException $e) {
+            //Log::error('ClientException en getUser(): '.$e->getMessage());
+        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+            //Log::error('BadResponseException en getUser(): '.$e->getMessage());
+        } catch (\Exception $e) {
+            //Log::error('Exception en getUser(): '.$e->getMessage());
+        }
+        return false;
+    }
 }

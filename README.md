@@ -37,7 +37,7 @@ Modificaque el composer.json del proyecto y añadir el repositorio del paquete D
 ```
 Ejecute el siguiente comando para instalar el paquete LlaveMX via Composer
 ``` shell
-composer require dticcfcrl/paquete-conexion-api-llave-mx-laravel:v0.2.12
+composer require dticcfcrl/paquete-conexion-api-llave-mx-laravel:v0.2.13
 ```
 
 ### Instalación desde el directorio local del repositorio (En caso de fallar la anterior)
@@ -134,25 +134,13 @@ $data = DB::select("SELECT u.id as user_id
                         )",
                     [$correo, $curp, $nombre, $apellido1, $apellido2]);
 ```
-> **Nota:** Elimine el modelo UsuarioSolicitud sino existe en su proyecto, así mismo los bloques de código que hacen referencia a él en las líneas 126 a 146.
+> **Nota:** Elimine la referencia al controller UserController sino existe en su proyecto, así mismo los bloques de código que hacen referencia a él en las líneas 144 a 146.
 ``` php
-use App\Models\UsuarioSolicitud;
+use App\Http\Controllers\UserController;
 ...
 try {
-    $solicitud = UsuarioSolicitud::whereCorreo($correo)->first();
-    if (isset($solicitud->id)) {
-        if (strpos($correo, 'core_') === false)
-            $this->sendMailValidarcorreo($correo, $solicitud->token_solicitud);
-    }else{
-            $token = Str::uuid();
-            $solicitud = UsuarioSolicitud::create([
-                'correo' => $correo,
-                'token_solicitud' => $token,
-                'fecha_solicitud' => date('Y-m-d H:i:s'),
-            ]);
-            if (strpos($correo, 'core_') === false)
-                $this->sendMailValidarcorreo($correo, $token);
-    }
+    $classUser = new UserController();
+    $classUser->iniciarValidacionDeCorreo($user);
     $message = 'Para continuar con tu registro, deberás confirmar tu correo electrónico dando clic en el enlace que te hemos enviado a "' . $correo . '".';
 } catch (Exception $e) {}
 ```
@@ -247,7 +235,7 @@ Al final del código del header incluya el partial de la modal para el registro 
 
 ## Notas adicionales (Respecto al Core)
 
-Revise que el Core este usando la rama "origin/core_llavemx" ya que guarda ahora todos los datos recuperados de LlaveMX, así mismo ejecute las migraciones.
+Revise que el Core este usando la rama "core_llavemx" ya que guarda ahora todos los datos recuperados de LlaveMX, así mismo ejecute las migraciones.
 ``` shell
 php artisan migrate
 ```

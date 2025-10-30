@@ -18,7 +18,9 @@ use App\Models\{User, Role, Bitacora};
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 // MODIFICAR: (Si no aplica eliminar todo el segmento)
-use App\Models\UsuarioSolicitud;
+/*
+use App\Http\Controllers\UserController;
+*/
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 
 class ApiLlaveMXController extends Controller
@@ -138,21 +140,11 @@ class ApiLlaveMXController extends Controller
             // MODIFICAR: (Si no aplica eliminar todo el segmento)
             // Crear el registro de validación de correo
             try {
-                $solicitud = UsuarioSolicitud::whereCorreo($correo)->first();
-                if (isset($solicitud->id)) {
-                    if (strpos($correo, 'core_') === false)
-                        $this->sendMailValidarcorreo($correo, $solicitud->token_solicitud);
-                }else{
-                        $token = Str::uuid();
-                        $solicitud = UsuarioSolicitud::create([
-                            'correo' => $correo,
-                            'token_solicitud' => $token,
-                            'fecha_solicitud' => date('Y-m-d H:i:s'),
-                        ]);
-                        if (strpos($correo, 'core_') === false)
-                            $this->sendMailValidarcorreo($correo, $token);
-                }
+                /*
+                $classUser = new UserController();
+                $classUser->iniciarValidacionDeCorreo($user);
                 $message = 'Para continuar con tu registro, deberás confirmar tu correo electrónico dando clic en el enlace que te hemos enviado a "' . $correo . '".';
+                */
             } catch (Exception $e) {}
             //--------------------------------------------------------------------------------------------------------------------------------------------------
             //Limpiamos la session de selección de cuenta si existen multiples
@@ -285,8 +277,12 @@ class ApiLlaveMXController extends Controller
         //PASO 05. Revisamos si existe el usuario previamente
         /*
         * MODIFICAR:
-        * Ajustar segun estructura de usuarios del sistema
+        * Ajustar segun estructura de usuarios del sistema... se puede usar $core_user['funcionario_activo'] == true
+        * para validar que el core nos indica que sigue activo como funcionario y habiliar el acceso a otros roles
         */
+        $todos_roles = isset($core_user['funcionario_activo'])?$core_user['funcionario_activo']:true;
+        if ($todos_roles){
+        }
         $data = DB::select("SELECT u.id as user_id
                             FROM public.users u
                             LEFT JOIN public.usuarios_solicitudes us ON us.usuario_id = u.id
@@ -360,7 +356,11 @@ class ApiLlaveMXController extends Controller
             Session::forget('state_csrf');
         }
         //PASO 07. Redirigir al usuario a la página principal del sistema acorde a su rol
-        if (!Auth::check()) return Redirect::to($this->home_login)->withErrors(['msg' => 'No se logro iniciar sesión con el usuario. Inténtelo de nuevo.']);
+        if (!Auth::check()) {
+            //Forzar el cierre de sesión para que el usuario pueda acceder con otra cuenta
+            $llave->closeSession($token);
+            return Redirect::to($this->home_login)->withErrors(['msg' => 'No se logro iniciar sesión con el usuario. Inténtelo de nuevo.']);
+        }
         /*
         * MODIFICAR:
         * Ajustar segun roles del sistema la bandeja a la que manda
