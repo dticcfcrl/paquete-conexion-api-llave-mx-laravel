@@ -37,7 +37,7 @@ Modificaque el composer.json del proyecto y añadir el repositorio del paquete D
 ```
 Ejecute el siguiente comando para instalar el paquete LlaveMX via Composer
 ``` shell
-composer require dticcfcrl/paquete-conexion-api-llave-mx-laravel:v0.2.13
+composer require dticcfcrl/paquete-conexion-api-llave-mx-laravel:v0.2.14
 ```
 
 ### Instalación desde el directorio local del repositorio (En caso de fallar la anterior)
@@ -243,7 +243,12 @@ php artisan migrate
  ``` shell
 > CREATE EXTENSION IF NOT EXISTS unaccent;
 ```
-
+Proceda a crear su credencial Passport mediante los siguientes comandos:
+ ``` shell
+php artisan passport:keys
+php artisan passport:client --client
+```
+Use el Client ID y Client Secret para asignarlo en las variables LLAVE_CORE_CLIENT_ID y LLAVE_CORE_CLIENT_SECRET. En cuanto a la url del core asignarlo en la variable LLAVE_CORE_API_URL.
 ## Seguridad
 
 Si descubre alguna vulnerabilidad o fallo de seguridad, favor de enviar un email a jorge.ceyca@centrolaboral.gob.mx para su atención y seguimiento.
