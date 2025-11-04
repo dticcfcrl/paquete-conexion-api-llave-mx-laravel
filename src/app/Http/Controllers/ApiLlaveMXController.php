@@ -153,17 +153,44 @@ class ApiLlaveMXController extends Controller
             * MODIFICAR:
             * Ajustar segun estructura de usuarios del sistema
             */
-            $data = DB::select("SELECT u.id as user_id
+            $todos_roles = Session::has('funcionario_activo')?Session::get('funcionario_activo'):true;
+            if ($todos_roles){
+                $data = DB::select("SELECT u.id as user_id
+                                    FROM public.users u
+                                    LEFT JOIN public.usuarios_solicitudes us ON us.usuario_id = u.id
+                                    WHERE (UPPER(u.email) = UPPER(?) OR UPPER(us.curp) = UPPER(?) OR 
+                                        (
+                                            unaccent(UPPER(u.first_name)) = unaccent(UPPER(?)) AND 
+                                            unaccent(UPPER(u.last_name)) = unaccent(UPPER(?)) AND 
+                                            unaccent(UPPER(u.second_last_name)) = unaccent(UPPER(?))
+                                        ) OR 
+                                        (
+                                            unaccent(UPPER(us.nombre)) = unaccent(UPPER(?)) AND 
+                                            unaccent(UPPER(us.primer_apellido)) = unaccent(UPPER(?)) AND 
+                                            unaccent(UPPER(us.segundo_apellido)) = unaccent(UPPER(?))
+                                        )
+                                        ) AND u.deleted_at IS NULL AND u.activo = true",
+                                    [$correo_llavemx, $curp, $nombre, $apellido1, $apellido2, $nombre, $apellido1, $apellido2]);
+            }else{
+                $data = DB::select("SELECT u.id as user_id
                                 FROM public.users u
                                 LEFT JOIN public.usuarios_solicitudes us ON us.usuario_id = u.id
+                                INNER JOIN public.user_roles ur ON ur.user_id = u.id
+                                INNER JOIN public.roles r ON r.id = ur.role_id
                                 WHERE (UPPER(u.email) = UPPER(?) OR UPPER(us.curp) = UPPER(?) OR 
                                     (
                                         unaccent(UPPER(u.first_name)) = unaccent(UPPER(?)) AND 
                                         unaccent(UPPER(u.last_name)) = unaccent(UPPER(?)) AND 
                                         unaccent(UPPER(u.second_last_name)) = unaccent(UPPER(?))
+                                    ) OR 
+                                    (
+                                        unaccent(UPPER(us.nombre)) = unaccent(UPPER(?)) AND 
+                                        unaccent(UPPER(us.primer_apellido)) = unaccent(UPPER(?)) AND 
+                                        unaccent(UPPER(us.segundo_apellido)) = unaccent(UPPER(?))
                                     )
-                                    ) AND u.deleted_at IS NULL AND u.activo = true",
-                                [$correo_llavemx, $curp, $nombre, $apellido1, $apellido2]);
+                                    ) AND u.deleted_at IS NULL AND u.activo = true AND r.name = 'representante_legal'",
+                                [$correo_llavemx, $curp, $nombre, $apellido1, $apellido2, $nombre, $apellido1, $apellido2]);
+            }
             //Recuperando los ids de las cuentas de usuario encontradas
             $users_id = array_map(fn($row) => $row->user_id, $data);
             //Recuperando los usuarios
@@ -281,19 +308,45 @@ class ApiLlaveMXController extends Controller
         * para validar que el core nos indica que sigue activo como funcionario y habiliar el acceso a otros roles
         */
         $todos_roles = isset($core_user['funcionario_activo'])?$core_user['funcionario_activo']:true;
+        Session::put('funcionario_activo', $todos_roles);
+
         if ($todos_roles){
+            $data = DB::select("SELECT u.id as user_id
+                                FROM public.users u
+                                LEFT JOIN public.usuarios_solicitudes us ON us.usuario_id = u.id
+                                WHERE (UPPER(u.email) = UPPER(?) OR UPPER(us.curp) = UPPER(?) OR 
+                                    (
+                                        unaccent(UPPER(u.first_name)) = unaccent(UPPER(?)) AND 
+                                        unaccent(UPPER(u.last_name)) = unaccent(UPPER(?)) AND 
+                                        unaccent(UPPER(u.second_last_name)) = unaccent(UPPER(?))
+                                    ) OR 
+                                    (
+                                        unaccent(UPPER(us.nombre)) = unaccent(UPPER(?)) AND 
+                                        unaccent(UPPER(us.primer_apellido)) = unaccent(UPPER(?)) AND 
+                                        unaccent(UPPER(us.segundo_apellido)) = unaccent(UPPER(?))
+                                    )
+                                    ) AND u.deleted_at IS NULL AND u.activo = true",
+                                [$correo, $curp, $nombre, $apellido1, $apellido2, $nombre, $apellido1, $apellido2]);
+        }else{
+            $data = DB::select("SELECT u.id as user_id
+                                FROM public.users u
+                                LEFT JOIN public.usuarios_solicitudes us ON us.usuario_id = u.id
+                                INNER JOIN public.user_roles ur ON ur.user_id = u.id
+                                INNER JOIN public.roles r ON r.id = ur.role_id
+                                WHERE (UPPER(u.email) = UPPER(?) OR UPPER(us.curp) = UPPER(?) OR 
+                                    (
+                                        unaccent(UPPER(u.first_name)) = unaccent(UPPER(?)) AND 
+                                        unaccent(UPPER(u.last_name)) = unaccent(UPPER(?)) AND 
+                                        unaccent(UPPER(u.second_last_name)) = unaccent(UPPER(?))
+                                    ) OR 
+                                    (
+                                        unaccent(UPPER(us.nombre)) = unaccent(UPPER(?)) AND 
+                                        unaccent(UPPER(us.primer_apellido)) = unaccent(UPPER(?)) AND 
+                                        unaccent(UPPER(us.segundo_apellido)) = unaccent(UPPER(?))
+                                    )
+                                    ) AND u.deleted_at IS NULL AND u.activo = true AND r.name = 'representante_legal'",
+                                [$correo, $curp, $nombre, $apellido1, $apellido2, $nombre, $apellido1, $apellido2]);
         }
-        $data = DB::select("SELECT u.id as user_id
-                            FROM public.users u
-                            LEFT JOIN public.usuarios_solicitudes us ON us.usuario_id = u.id
-                            WHERE (UPPER(u.email) = UPPER(?) OR UPPER(us.curp) = UPPER(?) OR 
-                                (
-                                    unaccent(UPPER(u.first_name)) = unaccent(UPPER(?)) AND 
-                                    unaccent(UPPER(u.last_name)) = unaccent(UPPER(?)) AND 
-                                    unaccent(UPPER(u.second_last_name)) = unaccent(UPPER(?))
-                                )
-                                ) AND u.deleted_at IS NULL AND u.activo = true",
-                            [$correo, $curp, $nombre, $apellido1, $apellido2]);
         //Recuperando los ids de las cuentas de usuario encontradas
         $users_id = array_map(fn($row) => $row->user_id, $data);
         //Recuperando los usuarios
