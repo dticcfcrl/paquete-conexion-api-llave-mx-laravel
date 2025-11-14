@@ -25,6 +25,7 @@ if (!function_exists('llaveMXEncryptString')){
     return Crypt::encryptString($data);
   }
 }
+
 if (!function_exists('llaveMXAccountEnabled')){
   /**
    * llaveMXAccountEnabled: Es un metodo que valida si la cuenta tiene un correo verificado

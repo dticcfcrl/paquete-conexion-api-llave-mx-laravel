@@ -1,4 +1,4 @@
-<div class="modal fade" id="{{ $modal_name ?? 'newAccountModal' }}" tabindex="-1" role="dialog" aria-labelledby="newAccountModalLabel" aria-hidden="true">
+<div class="modal fade" id="{{ $modal_name ?? 'newAccountModal' }}" tabindex="-1" role="dialog" aria-labelledby="newAccountModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
     <div class="modal-dialog modal-stps modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">

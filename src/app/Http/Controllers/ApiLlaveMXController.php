@@ -55,30 +55,6 @@ class ApiLlaveMXController extends Controller
         return Redirect::to($url);
     }
 
-    private function sendMailValidarcorreo($email, $token)
-    {
-        if (strpos($email, 'core_') !== false) return false;
-        $subject = 'Confirmación de correo electrónico';
-        $description = '<p>Hola.</p>';
-        $description .= '<p>Para completar el proceso de registro, necesitamos verificar tu dirección de correo electrónico. Por favor, sigue el enlace a continuación para validar tu cuenta:</p>';
-        $link = url('registro/validar-correo/' . $token);
-        $description .= '<p><a href="' . $link . '">Haz clic aquí</a></p>';
-        try {
-            config(['mail.default' => 'secondary']); // Cambia al mailer secundario
-            Mail::send([], [], function($message) use ($email, $subject, $description) {
-                $fromAddress = config('mail.mailers.secondary.from.address');
-                $fromName = config('mail.mailers.secondary.from.name');
-                $message->from($fromAddress, $fromName);
-                $message->to($email);
-                $message->subject($subject);
-                $message->html($description);
-
-            });
-        } catch (\Throwable $th) {
-            return false;
-        }
-    }
-
     public function newAccount(Request $request)
     {  
         if ($request->isMethod('get')) {
@@ -93,12 +69,17 @@ class ApiLlaveMXController extends Controller
             $nombre = Session::get('nombre');
             $apellido1 = Session::get('apellido1');
             $apellido2 = Session::get('apellido2');
-            $core_user_id = Session::get('core_user_id');
-            $core_token_session = Session::get('core_token_session');
+            $sexo = Session::get('sexo');
+            $telefono = Session::get('telefono');
+            //Datos extras
+            $es_extranjero = Session::get('es_extranjero');
+            $nacimiento_estado = Session::get('nacimiento_estado');
+            $nacimiento_estado_id = Session::get('nacimiento_estado_id');
+            $nacimiento_fecha = Session::get('nacimiento_fecha');
+            $usuario_llave_id = Session::get('usuario_llave_id');
+            $tiene_firmamx = Session::get('tiene_firmamx');
             //Validar que el correo para el mismo usuario no este previamente registrado
-            $preregistrado = User::where('email',$correo)
-                            //->whereRaw("unaccent(UPPER(first_name)) = unaccent(UPPER('".$nombre."')) AND unaccent(UPPER(last_name)) = unaccent(UPPER('".$apellido1."')) AND unaccent(UPPER(second_last_name)) = unaccent(UPPER('".$apellido2."'))")
-                            ->exists();
+            $preregistrado = User::where('email',$correo)->exists();
             if ($preregistrado){
                 return redirect()->route('llavemx.selector')->with('error', 'Ya existe una cuenta con el correo "'.$correo.'".');
             }
@@ -112,14 +93,32 @@ class ApiLlaveMXController extends Controller
             }
             //Registramos la cuenta tomando los datos del usuario
             $role_name = 'representante_legal';
+            $pass = bcrypt(Str::random(16));
+            //phone, curp, usuario_llave_id,
             $data_user = [
                 'first_name' => $nombre,
                 'last_name' => $apellido1,
                 'second_last_name' => $apellido2,
                 'email' => $correo,
-                'user_core_id' => isset($core_user_id)?$core_user_id:null,
-                'token_session' => isset($core_token_session)?$core_token_session:null
+                'password' => $pass,
+                'password_confirmation' => $pass,
+                'phone' => $telefono,
+                'curp' => $curp,
+                'sexo' => $sexo,
+                'es_extranjero' => $es_extranjero??false,
+                'nacimiento_estado' => $nacimiento_estado??null,
+                'nacimiento_estado_id' => $nacimiento_estado_id??null,
+                'nacimiento_fecha' => $nacimiento_fecha??null,
+                'usuario_llave_id' => $usuario_llave_id??null,
+                'tiene_firmamx' => $tiene_firmamx??false
             ];
+            $llavemx_services = new LlaveMXService();
+            $user_core = $llavemx_services->registerUserInCore($data_user);
+            if (isset($user_core['id'])) {
+                $data_user['token_session'] = $user_core['token_session'];
+                $data_user['user_core_id'] = $user_core['id'];
+                $data_user['update_data_at'] = $user_core['update_data_at'];
+            }
             $user = User::create($data_user);
             $role = Role::where('name', $role_name)->first();
             $user->assignRole($role->id);
@@ -234,56 +233,32 @@ class ApiLlaveMXController extends Controller
             //Regresamos al login con error de state inválido
             return Redirect::to($this->home_login)->withErrors(['msg' => 'Error de validación de seguridad. Inténtelo de nuevo.']);
         }
-        $llave = new LlaveMXService();
+        $llavemx_services = new LlaveMXService();
         //PASO 02. Transformar el CODE por un TOKEN de LlaveMX
-        $token = $llave->getToken($request->code);
+        $token = $llavemx_services->getToken($request->code);
         if(!$token){
             //Regresamos al login con error de obtención de token
             return Redirect::to($this->home_login)->withErrors(['msg' => 'Error al obtener el token de autenticación. Inténtelo de nuevo.']);
         }
         //PASO 03. Recuperar los datos del usuario y persona moral usando el token
-        $data_user = $llave->getUser($token);
+        $data_user = $llavemx_services->getUser($token);
         if(!$data_user){
             //Regresamos al login con error de obtención de datos del usuario
             return Redirect::to($this->home_login)->withErrors(['msg' => 'Error al obtener los datos del usuario desde LlaveMX. Inténtelo de nuevo.']);
         }
-        $data_morales = $llave->getPersonasMorales($token);
+        $data_morales = $llavemx_services->getPersonasMorales($token);
         //Registrar/Actualizar la info del usuario al core
-        $core_user = $llave->storeDataAtCore($data_user, $data_morales);
+        $core_user = $llavemx_services->storeDataAtCore($data_user, $data_morales);
 
         //PASO 04. Pasar datos a variables internas
-        /* REAL */
         $curp = $data_user['curp'];
-        $correo = $data_user['correo'];
+        $correo = @$data_user['correo'];
         $nombre = $data_user['nombre'];
         $apellido1 = $data_user['primerApellido'];
         $apellido2 = $data_user['segundoApellido'];
-        
-        /* EJEMPLO USUARIO 2 CUENTAS */
-        /*
-        $curp = 'TOJA650527HDFRRM08';
-        $correo = 'core_armandoatj@gmail.com';
-        $nombre = 'ARMANDO';
-        $apellido1 = 'TORRES';
-        $apellido2 = 'JÚAREZ';
-        */
-        /*
-        $curp = 'PALE650527MDFLPL00';
-        $correo = 'elvia@fesamsindicato.com.mx';
-        $nombre = 'ELVIA';
-        $apellido1 = 'PALANCARES';
-        $apellido2 = 'LÓPEZ';
-        */
-        
-        /* EJEMPLO USUARIO 1 CUENTAS (Representante legal) */
-        /*
-        $curp = 'SAAJ750514HJCNGS02';
-        $correo = 'jesus.sanchez.centrolaboral@gmail.com';
-        $nombre = 'JOSÉ DE JESÚS';
-        $apellido1 = 'SANCHEZ';
-        $apellido2 = 'AGUILERA';
-        */
-        /* EJEMPLO USUARIO 0 CUENTAS */
+        $sexo = $data_user['sexo'];
+        $telefono = $data_user['telVigente'];
+        /* EJEMPLO PARA SOBREESCRIBIR USUARIO*/
         /*
         $curp = 'CECJ770822HSLYSR04';
         $correo = 'jceyca@gmail.com';
@@ -291,6 +266,13 @@ class ApiLlaveMXController extends Controller
         $apellido1 = 'CEYCA';
         $apellido2 = 'CASTRO';
         */
+        //Datos extras
+        $es_extranjero = $data_user['esExtranjero']??false;
+        $nacimiento_estado = @$data_user['estadoNacimiento'];
+        $nacimiento_estado_id = @$data_user['idEstadoNacimiento'];
+        $nacimiento_fecha = @$data_user['fechaNacimiento'];
+        $usuario_llave_id = $data_user['idUsuario'];
+        $tiene_firmamx = $data_user['tieneFirmaMX']??false;
 
         //Guardamos en sesión los datos de la cuenta por si queremos crear nueva cuenta
         Session::put('curp', $curp);
@@ -298,13 +280,19 @@ class ApiLlaveMXController extends Controller
         Session::put('nombre', $nombre);
         Session::put('apellido1', $apellido1);
         Session::put('apellido2', $apellido2);
-        Session::put('core_user_id', @$core_user['id']);
-        Session::put('core_token_session', @$core_user['token_session']);
+        Session::put('sexo', $sexo);
+        Session::put('telefono', $telefono);
+        Session::put('es_extranjero', $es_extranjero);
+        Session::put('nacimiento_estado', $nacimiento_estado);
+        Session::put('nacimiento_estado_id', $nacimiento_estado_id);
+        Session::put('nacimiento_fecha', $nacimiento_fecha);
+        Session::put('usuario_llave_id', $usuario_llave_id);
+        Session::put('tiene_firmamx', $tiene_firmamx);
 
         //PASO 05. Revisamos si existe el usuario previamente
         /*
         * MODIFICAR:
-        * Ajustar segun estructura de usuarios del sistema... se puede usar $core_user['funcionario_activo'] == true
+        * Ajustar query segun estructura de usuarios del sistema... se puede usar $core_user['funcionario_activo'] == true
         * para validar que el core nos indica que sigue activo como funcionario y habiliar el acceso a otros roles
         */
         $todos_roles = isset($core_user['funcionario_activo'])?$core_user['funcionario_activo']:true;
@@ -328,6 +316,43 @@ class ApiLlaveMXController extends Controller
                                     ) AND u.deleted_at IS NULL AND u.activo = true",
                                 [$correo, $curp, $nombre, $apellido1, $apellido2, $nombre, $apellido1, $apellido2]);
         }else{
+            //Recuperamos las cuentas de otros roles que no sean representante_legal para deshabilitarlas
+            $data = DB::select("SELECT u.id as user_id
+                                FROM public.users u
+                                LEFT JOIN public.usuarios_solicitudes us ON us.usuario_id = u.id
+                                INNER JOIN public.user_roles ur ON ur.user_id = u.id
+                                INNER JOIN public.roles r ON r.id = ur.role_id
+                                WHERE (UPPER(us.curp) = UPPER(?) OR 
+                                    (
+                                        unaccent(UPPER(u.first_name)) = unaccent(UPPER(?)) AND 
+                                        unaccent(UPPER(u.last_name)) = unaccent(UPPER(?)) AND 
+                                        unaccent(UPPER(u.second_last_name)) = unaccent(UPPER(?))
+                                    ) OR 
+                                    (
+                                        unaccent(UPPER(us.nombre)) = unaccent(UPPER(?)) AND 
+                                        unaccent(UPPER(us.primer_apellido)) = unaccent(UPPER(?)) AND 
+                                        unaccent(UPPER(us.segundo_apellido)) = unaccent(UPPER(?))
+                                    )
+                                    ) AND u.deleted_at IS NULL AND u.activo = true AND r.name != 'representante_legal'
+                                GROUP BY u.id",
+                                [$curp, $nombre, $apellido1, $apellido2, $nombre, $apellido1, $apellido2]);
+            $users_id = array_unique(array_map(fn($row) => $row->user_id, $data));
+            User::whereIn('id',$users_id)->get()->each(function ($user) {
+                $user->activo = false;
+                $user->save();
+                /*
+                * MODIFICAR:
+                * Revisar si requiere bitacorización
+                */
+                Bitacora::create([
+                    'usuario_id' => $user->id,
+                    'code' => 'admin',
+                    'subcode' => 'usuarios',
+                    'descripcion' => 'Deshabilitado usuario desde el Core',
+                    'referencia_id' => $user->id,
+                    'tipo_referencia' => 'usuario'
+                ]);
+            });
             $data = DB::select("SELECT u.id as user_id
                                 FROM public.users u
                                 LEFT JOIN public.usuarios_solicitudes us ON us.usuario_id = u.id
@@ -367,24 +392,56 @@ class ApiLlaveMXController extends Controller
                     'email' => $user->email,
                     'user_core_id' => $user->user_core_id
                 ];
-                $response = $llave->loginInCore($data_core);
+                $response = $llavemx_services->loginInCore($data_core);
                 //Destruimos la session de state
                 Session::forget('state_csrf');
             }
         }else{
             //PASO 06b. Si no existe, crear el usuario y luego iniciar sesión
+
+            if(!isset($correo) || empty($correo)){
+                //Regresamos al login con error de necesita el correo electrónico
+                return Redirect::to($this->home_login)->withErrors(['msg' => 'Es necesario que su cuenta Llave MX cuente con un correo electrónico para poder registrar su usuario en la plataforma debido a las notificaciones que se generan.']);
+            }
+
             $role_name = 'representante_legal';
-            $data_user = [
-                'first_name' => $nombre,
-                'last_name' => $apellido1,
-                'second_last_name' => $apellido2,
-                'email' => $correo,
-                'user_core_id' => isset($core_user)?@$core_user['id']:null,
-                'token_session' => isset($core_user)?@$core_user['token_session']:null
-            ];
-            $user = User::create($data_user);
             $role = Role::where('name', $role_name)->first();
-            $user->assignRole($role->id);
+            /*
+            * MODIFICAR:
+            * Revisar si se tiene el atributo activo en el usuario para reactivarlo en caso de existir pero estar inactivo 
+            * y actualizar sus datos
+            */
+            $user = User::where('email',$correo)->where('activo',false)->first();
+            $bitacora_message = '';
+            if (isset($user)){
+                //Reactivar el usuario
+                $user->first_name = $nombre;
+                $user->last_name = $apellido1;
+                $user->second_last_name = $apellido2;
+                $user->user_core_id = isset($core_user)?@$core_user['id']:null;
+                $user->token_session = isset($core_user)?@$core_user['token_session']:null;
+                $user->activo = true;
+                $user->save();
+                $user->assignRole($role->id);
+                $bitacora_message = 'Se habilitó el usuario nuevamente';
+            }else{
+                //Crear nuevo usuario
+                $data_user = [
+                    'first_name' => $nombre,
+                    'last_name' => $apellido1,
+                    'second_last_name' => $apellido2,
+                    'email' => $correo,
+                    'user_core_id' => isset($core_user)?@$core_user['id']:null,
+                    'token_session' => isset($core_user)?@$core_user['token_session']:null
+                ];
+                try {
+                    $user = User::create($data_user);
+                    $user->assignRole($role->id);
+                    $bitacora_message = 'Se registró el usuario';
+                } catch (Exception $e) {
+                    return Redirect::to($this->home_login)->withErrors(['msg' => 'Existe un conflicto con tu cuenta de correo electrónico ya que esta vinculada a otro usuario. Si tiene dudas o desea realizar una aclaración, comuníquese al siguiente correo: mesadeservicio@centrolaboral.gob.mx']);
+                }
+            }
             /*
             * MODIFICAR:
             * Revisar si requiere bitacorización
@@ -393,10 +450,13 @@ class ApiLlaveMXController extends Controller
                 'usuario_id' => $user->id,
                 'code' => 'admin',
                 'subcode' => 'usuarios',
-                'descripcion' => 'Se registró el usuario',
+                'descripcion' => $bitacora_message,
                 'referencia_id' => $user->id,
                 'tipo_referencia' => 'usuario'
             ]);
+            //Destruimos la session de state
+            Session::forget('state_csrf');
+
             //Abrimos sesión en la plataforma
             Auth::login($user, true);
             //Abrimos sesión en registro
@@ -404,14 +464,12 @@ class ApiLlaveMXController extends Controller
                 'email' => $user->email,
                 'user_core_id' => $user->user_core_id
             ];
-            $response = $llave->loginInCore($data_core);
-            //Destruimos la session de state
-            Session::forget('state_csrf');
+            $response = $llavemx_services->loginInCore($data_core);
         }
         //PASO 07. Redirigir al usuario a la página principal del sistema acorde a su rol
         if (!Auth::check()) {
             //Forzar el cierre de sesión para que el usuario pueda acceder con otra cuenta
-            $llave->closeSession($token);
+            $llavemx_services->closeSession($token);
             return Redirect::to($this->home_login)->withErrors(['msg' => 'No se logro iniciar sesión con el usuario. Inténtelo de nuevo.']);
         }
         /*
@@ -436,12 +494,12 @@ class ApiLlaveMXController extends Controller
             }
             Auth::login($user, true);
             //Abrimos sesión en registro
-            $llave = new LlaveMXService();
+            $llavemx_services = new LlaveMXService();
             $data_core = [
                 'email' => $user->email,
                 'user_core_id' => $user->user_core_id
             ];
-            $response = $llave->loginInCore($data_core);
+            $response = $llavemx_services->loginInCore($data_core);
             //Destruimos la session de state
             Session::forget('state_csrf');
             //PASO 07. Redirigir al usuario a la página principal del sistema acorde a su rol

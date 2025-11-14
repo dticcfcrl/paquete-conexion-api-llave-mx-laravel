@@ -37,7 +37,7 @@ Modificaque el composer.json del proyecto y añadir el repositorio del paquete D
 ```
 Ejecute el siguiente comando para instalar el paquete LlaveMX via Composer
 ``` shell
-composer require dticcfcrl/paquete-conexion-api-llave-mx-laravel:v0.2.14
+composer require dticcfcrl/paquete-conexion-api-llave-mx-laravel:v0.2.15
 ```
 
 ### Instalación desde el directorio local del repositorio (En caso de fallar la anterior)
@@ -177,6 +177,10 @@ Si no tiene el route service provider, favor de revisar si dispone de app (boots
         "app/Helpers/llavemx.php"
     ]
 },
+```
+Ejecutar el siguiente comando después del cambio:
+``` bash
+composer dump-autoload
 ```
 - **Paso 8:**  Desinstale el paquete LlaveMX. Al realizar esta acción las vistas, controladores, rutas, helpers y services de la funcionalidad de LlaveMX preconstruida permanecerán en el proyecto y facilitará su despliegue en producción sin dependencia del paquete.
 ``` bash

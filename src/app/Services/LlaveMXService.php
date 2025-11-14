@@ -87,6 +87,29 @@ class LlaveMXService
     }
 
     /**
+     * Crear usuario en el core
+     */
+    public function registerUserInCore($form_params, $token = '')
+    {
+        $token = $token == '' ? $this->token : $token;
+
+        try {
+            $response = $this->http->post($this->url.'api/usuarios/registro', [
+                'headers' => [
+                    'Accept'        => 'application/json',
+                    'Authorization' => 'Bearer '.$token
+                ],
+                'form_params' => $form_params,
+                'verify' => env('LLAVE_VERIFY_SSL', true)
+            ]);
+            return json_decode((string)$response->getBody(), true);
+        }catch(\GuzzleHttp\Exception\ClientException $e) {
+            $response = $e->getResponse()->getBody(true);
+            return ['code_error' => $e->getResponse()->getStatusCode(), 'messages' => json_decode((string)$response, true)];
+        }
+    }
+
+    /**
      * Guardar la información del usuario en el CORE
      */
     public function storeDataAtCore($data_user, $data_morales)
@@ -149,8 +172,6 @@ class LlaveMXService
         }
         return $data;
     }
-
-
 
     /**
      * Convertir el code en token
