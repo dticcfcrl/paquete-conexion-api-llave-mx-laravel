@@ -70,7 +70,7 @@ class LlaveMXService
     public function loginInCore($form_params)
     {
         try {
-            $response = $this->http->request('POST', $this->url. 'api/usuarios/autenticar', [
+            $response = $this->http->request('POST', $this->url_core. 'api/usuarios/autenticar', [
                 'headers' => [
                     'Accept' => 'application/json',
                     'Authorization' => 'Bearer ' . $this->token_core
@@ -94,7 +94,7 @@ class LlaveMXService
         $token = $token == '' ? $this->token : $token;
 
         try {
-            $response = $this->http->post($this->url.'api/usuarios/registro', [
+            $response = $this->http->post($this->url_core.'api/usuarios/registro', [
                 'headers' => [
                     'Accept'        => 'application/json',
                     'Authorization' => 'Bearer '.$token

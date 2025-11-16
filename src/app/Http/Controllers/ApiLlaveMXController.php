@@ -528,7 +528,23 @@ class ApiLlaveMXController extends Controller
             if(!isset($users)){
                 return Redirect::to($this->home_login)->withErrors(['msg' => 'Error al recuperar las cuentas de usuario. Inténtelo de nuevo.']);
             }
-            return view('llavemx/selector', compact('users'));
+            //Revisamos si solo hay una cuenta, en ese caso redirigimos al login directo
+            if($users->count() == 1){
+                $user = $users->first();
+                //Abrimos sesión en la plataforma si todo es ok con la confirmación de correo
+                Auth::login($user, true);
+                //Abrimos sesión en el core
+                $data_core = [
+                    'email' => $user->email,
+                    'user_core_id' => $user->user_core_id
+                ];
+                $llavemx_services = new LlaveMXService();
+                $response = $llavemx_services->loginInCore($data_core);
+                //Destruimos la session de cuentas porque solo tiene una
+                Session::forget('cuentas');
+            }else{
+                return view('llavemx/selector', compact('users'));
+            }
         }
 
         /*
