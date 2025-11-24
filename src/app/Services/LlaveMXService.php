@@ -75,7 +75,6 @@ class LlaveMXService
                     'Accept' => 'application/json',
                     'Authorization' => 'Bearer ' . $this->token_core
                 ],
-
                 'form_params' => $form_params,
                 'verify' => env('LLAVE_VERIFY_SSL', true)
             ]);
@@ -193,6 +192,7 @@ class LlaveMXService
                     'Accept' => 'application/json',
                     'Content-Type' => 'application/json',
                 ],
+                'verify' => env('LLAVE_VERIFY_SSL', true)
             ]);
             $token = json_decode((string)$response->getBody(), true);
             if(!isset($token['accessToken'])) return false;
@@ -211,7 +211,8 @@ class LlaveMXService
                 'auth' => [env('LLAVE_BASICAUTH_USER'), env('LLAVE_BASICAUTH_PASSWORD')],
                 'headers' => [
                     'accessToken' => $token
-                ]
+                ],
+                'verify' => env('LLAVE_VERIFY_SSL', true)
             ]);
             return json_decode((string)$response->getBody(), true);
         }catch(\GuzzleHttp\Exception\ClientException $e) {} catch (\GuzzleHttp\Exception\BadResponseException $e) {} catch (\Exception $e) {}
@@ -228,7 +229,8 @@ class LlaveMXService
                 'auth' => [env('LLAVE_BASICAUTH_USER'), env('LLAVE_BASICAUTH_PASSWORD')],
                 'headers' => [
                     'accessToken' => $token
-                ]
+                ],
+                'verify' => env('LLAVE_VERIFY_SSL', true)
             ]);
             return json_decode((string)$response->getBody(), true);
         }catch(\GuzzleHttp\Exception\ClientException $e) {
@@ -254,6 +256,7 @@ class LlaveMXService
                     'Content-Type' => 'application/json',
                     'accessToken' => $token
                 ],
+                'verify' => env('LLAVE_VERIFY_SSL', true)
             ]);
             return json_decode((string)$response->getBody(), true);
         }catch(\GuzzleHttp\Exception\ClientException $e) {

@@ -37,7 +37,7 @@ Modificaque el composer.json del proyecto y añadir el repositorio del paquete D
 ```
 Ejecute el siguiente comando para instalar el paquete LlaveMX via Composer
 ``` shell
-composer require dticcfcrl/paquete-conexion-api-llave-mx-laravel:v0.2.17
+composer require dticcfcrl/paquete-conexion-api-llave-mx-laravel:v0.2.18
 ```
 
 ### Instalación desde el directorio local del repositorio (En caso de fallar la anterior)
@@ -253,6 +253,18 @@ php artisan passport:keys
 php artisan passport:client --client
 ```
 Use el Client ID y Client Secret para asignarlo en las variables LLAVE_CORE_CLIENT_ID y LLAVE_CORE_CLIENT_SECRET. En cuanto a la url del core asignarlo en la variable LLAVE_CORE_API_URL.
+
+## Fallos de comunicación con cerficados SSL autofirmados (solo en local)
+
+Algunas veces los certificados SSL autofirmados generán problemas de comunicación en ambientes locales. Para solventarlos, se ha incorporado una variable en el .env la cual solo debe usarse en ambientes locales (NO EN PRODUCCIÓN).
+
+``` bash
+LLAVE_VERIFY_SSL=false #para ambiente local ssl autofirmado poner en false, sino borrar la variable
+```
+``` shell
+php artisan config:clear
+```
+
 ## Seguridad
 
 Si descubre alguna vulnerabilidad o fallo de seguridad, favor de enviar un email a jorge.ceyca@centrolaboral.gob.mx para su atención y seguimiento.
