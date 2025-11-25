@@ -3,6 +3,19 @@ $llavemx-gray:#dce0e0;
 $llavemx-oro:#b38e5d;
 $llavemx-spacer:22px;
 
+.primary-link {
+    color: $brand-primary;
+    font-weight: bold;
+
+    &:hover, &:focus{
+        color: #e14e7b;
+    }
+
+    &:active {
+        color: $brand-primary;
+    }
+}
+
 .btn-llavemx{
   background: #fff;
   border-radius: 3px;

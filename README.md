@@ -37,7 +37,7 @@ Modificaque el composer.json del proyecto y añadir el repositorio del paquete D
 ```
 Ejecute el siguiente comando para instalar el paquete LlaveMX via Composer
 ``` shell
-composer require dticcfcrl/paquete-conexion-api-llave-mx-laravel:v0.2.18
+composer require dticcfcrl/paquete-conexion-api-llave-mx-laravel:v0.2.19
 ```
 
 ### Instalación desde el directorio local del repositorio (En caso de fallar la anterior)
