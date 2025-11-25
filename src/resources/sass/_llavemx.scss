@@ -4,7 +4,7 @@ $llavemx-oro:#b38e5d;
 $llavemx-spacer:22px;
 
 .primary-link {
-    color: $brand-primary;
+    color: $llavemx-brand-primary;
     font-weight: bold;
 
     &:hover, &:focus{
@@ -12,7 +12,7 @@ $llavemx-spacer:22px;
     }
 
     &:active {
-        color: $brand-primary;
+        color: $llavemx-brand-primary;
     }
 }
 
