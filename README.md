@@ -21,7 +21,7 @@ src/
 
 ### Instalación desde el repositorio GitHub (¡Recomendada!)
 
-Modificaque el composer.json del proyecto y añadir el repositorio del paquete DTICCFCRL/paquete-conexion-api-llave-mx-laravel para poder instalarlo mediante composer.
+Modifique el composer.json del proyecto y añadir el repositorio del paquete DTICCFCRL/paquete-conexion-api-llave-mx-laravel para poder instalarlo mediante composer.
 > **Nota:** Revise si ya tenía previamente la definición "minimum-stability", si es así solo deje una con el valor "dev". Tambien, revise la definición "prefer-stable" que no se duplique y tenga el valor "true". 
 ``` php
     ...
@@ -44,7 +44,7 @@ composer require dticcfcrl/paquete-conexion-api-llave-mx-laravel:v0.2.20
 
 En caso de tener problemas para instalar el paquete directamente desde GitHub, proceda a descargar el repositorio y dejarlo al mismo nivel que el directorio del proyecto en que esta trabajando y desea implementarle LlaveMX.
 
-Modificaque el composer.json del proyecto y añada la ruta (directorio) al paquete DTICCFCRL/paquete-conexion-api-llave-mx-laravel para poder instalarlo mediante Composer.
+Modifique el composer.json del proyecto y añada la ruta (directorio) al paquete DTICCFCRL/paquete-conexion-api-llave-mx-laravel para poder instalarlo mediante Composer.
 > **Nota:** Revise si ya tenía previamente la definición "minimum-stability", si es así solo deje una con el valor "dev". Tambien, revise la definición "prefer-stable" que no se duplique y tenga el valor "true".
 ``` php
     ...
