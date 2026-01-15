@@ -79,7 +79,7 @@ class ApiLlaveMXController extends Controller
             $usuario_llave_id = Session::get('usuario_llave_id');
             $tiene_firmamx = Session::get('tiene_firmamx');
             //Validar que el correo para el mismo usuario no este previamente registrado
-            $preregistrado = User::where('email',$correo)->exists();
+            $preregistrado = User::whereRaw("email ilike '".$correo."'")->exists();
             if ($preregistrado){
                 return redirect()->route('llavemx.selector')->with('error', 'Ya existe una cuenta con el correo "'.$correo.'".');
             }
@@ -92,72 +92,90 @@ class ApiLlaveMXController extends Controller
                 return redirect()->route('llavemx.selector')->with('error', 'Ya tienes la cantidad máxima de cuentas permitidas.');
             }
             //Registramos la cuenta tomando los datos del usuario
-            $role_name = 'representante_legal';
-            $pass = bcrypt(Str::random(16));
-            //phone, curp, usuario_llave_id,
-            $data_user = [
-                'first_name' => $nombre,
-                'last_name' => $apellido1,
-                'second_last_name' => $apellido2,
-                'email' => $correo,
-                'password' => $pass,
-                'password_confirmation' => $pass,
-                'phone' => $telefono,
-                'curp' => $curp,
-                'sexo' => $sexo,
-                'es_extranjero' => $es_extranjero??false,
-                'nacimiento_estado' => $nacimiento_estado??null,
-                'nacimiento_estado_id' => $nacimiento_estado_id??null,
-                'nacimiento_fecha' => $nacimiento_fecha??null,
-                'usuario_llave_id' => $usuario_llave_id??null,
-                'tiene_firmamx' => $tiene_firmamx??false
-            ];
-            $llavemx_services = new LlaveMXService();
-            $user_core = $llavemx_services->registerUserInCore($data_user);
-            if (isset($user_core['id'])) {
-                $data_user['token_session'] = $user_core['token_session'];
-                $data_user['user_core_id'] = $user_core['id'];
-                $data_user['update_data_at'] = $user_core['update_data_at'];
-            }
-            $user = User::create($data_user);
-            $role = Role::where('name', $role_name)->first();
-            $user->assignRole($role->id);
-            /*
-            * MODIFICAR:
-            * Revisar si requiere bitacorización
-            */
-            Bitacora::create([
-                'usuario_id' => $user->id,
-                'code' => 'admin',
-                'subcode' => 'usuarios',
-                'descripcion' => 'Se registró el usuario',
-                'referencia_id' => $user->id,
-                'tipo_referencia' => 'usuario'
-            ]);
-            $message = 'Cuenta registrada exitosamente.';
-            //--------------------------------------------------------------------------------------------------------------------------------------------------
-            // MODIFICAR: (Si no aplica eliminar todo el segmento)
-            // Crear el registro de validación de correo
             try {
+                $role_name = 'representante_legal';
+                $pass = bcrypt(Str::random(16));
+                //phone, curp, usuario_llave_id,
+                $data_user = [
+                    'first_name' => $nombre,
+                    'last_name' => $apellido1,
+                    'second_last_name' => $apellido2,
+                    'email' => $correo,
+                    'password' => $pass,
+                    'password_confirmation' => $pass,
+                    'phone' => $telefono,
+                    'curp' => $curp,
+                    'sexo' => $sexo,
+                    'es_extranjero' => $es_extranjero??false,
+                    'nacimiento_estado' => $nacimiento_estado??null,
+                    'nacimiento_estado_id' => $nacimiento_estado_id??null,
+                    'nacimiento_fecha' => $nacimiento_fecha??null,
+                    'usuario_llave_id' => $usuario_llave_id??null,
+                    'tiene_firmamx' => $tiene_firmamx??false
+                ];
+                $llavemx_services = new LlaveMXService();
+                $user_core = $llavemx_services->registerUserInCore($data_user);
+                if (isset($user_core['id'])) {
+                    $data_user['token_session'] = $user_core['token_session'];
+                    $data_user['user_core_id'] = $user_core['id'];
+                    $data_user['update_data_at'] = $user_core['update_data_at'];
+                }
+                $user = User::create($data_user);
+                $role = Role::where('name', $role_name)->first();
+                $user->assignRole($role->id);
+                /*
+                * MODIFICAR:
+                * Revisar si requiere bitacorización
+                */
+                Bitacora::create([
+                    'usuario_id' => $user->id,
+                    'code' => 'admin',
+                    'subcode' => 'usuarios',
+                    'descripcion' => 'Se registró el usuario',
+                    'referencia_id' => $user->id,
+                    'tipo_referencia' => 'usuario'
+                ]);
+                $message = 'Cuenta registrada exitosamente.';
+                //--------------------------------------------------------------------------------------------------------------------------------------------------
+                // MODIFICAR: (Si no aplica eliminar todo el segmento)
+                // Crear el registro de validación de correo
                 /*
                 $classUser = new UserController();
                 $classUser->iniciarValidacionDeCorreo($user);
                 $message = 'Para continuar con tu registro, deberás confirmar tu correo electrónico dando clic en el enlace que te hemos enviado a "' . $correo . '".';
                 */
-            } catch (Exception $e) {}
-            //--------------------------------------------------------------------------------------------------------------------------------------------------
-            //Limpiamos la session de selección de cuenta si existen multiples
-            Session::forget('cuentas');
-            /*
-            * MODIFICAR:
-            * Ajustar segun estructura de usuarios del sistema
-            */
-            $todos_roles = Session::has('funcionario_activo')?Session::get('funcionario_activo'):true;
-            if ($todos_roles){
-                $data = DB::select("SELECT u.id as user_id
+                //--------------------------------------------------------------------------------------------------------------------------------------------------
+                //Limpiamos la session de selección de cuenta si existen multiples
+                Session::forget('cuentas');
+                /*
+                * MODIFICAR:
+                * Ajustar segun estructura de usuarios del sistema
+                */
+                $todos_roles = Session::has('funcionario_activo')?Session::get('funcionario_activo'):true;
+                if ($todos_roles){
+                    $data = DB::select("SELECT u.id as user_id
+                                        FROM public.users u
+                                        LEFT JOIN public.usuarios_solicitudes us ON us.usuario_id = u.id
+                                        WHERE (UPPER(us.curp) = UPPER(?) OR 
+                                            (
+                                                unaccent(UPPER(u.first_name)) = unaccent(UPPER(?)) AND 
+                                                unaccent(UPPER(u.last_name)) = unaccent(UPPER(?)) AND 
+                                                unaccent(UPPER(u.second_last_name)) = unaccent(UPPER(?))
+                                            ) OR 
+                                            (
+                                                unaccent(UPPER(us.nombre)) = unaccent(UPPER(?)) AND 
+                                                unaccent(UPPER(us.primer_apellido)) = unaccent(UPPER(?)) AND 
+                                                unaccent(UPPER(us.segundo_apellido)) = unaccent(UPPER(?))
+                                            )
+                                            ) AND u.deleted_at IS NULL AND u.activo = true",
+                                        [$curp, $nombre, $apellido1, $apellido2, $nombre, $apellido1, $apellido2]);
+                }else{
+                    $data = DB::select("SELECT u.id as user_id
                                     FROM public.users u
                                     LEFT JOIN public.usuarios_solicitudes us ON us.usuario_id = u.id
-                                    WHERE (UPPER(u.email) = UPPER(?) OR UPPER(us.curp) = UPPER(?) OR 
+                                    INNER JOIN public.user_roles ur ON ur.user_id = u.id
+                                    INNER JOIN public.roles r ON r.id = ur.role_id
+                                    WHERE (UPPER(us.curp) = UPPER(?) OR 
                                         (
                                             unaccent(UPPER(u.first_name)) = unaccent(UPPER(?)) AND 
                                             unaccent(UPPER(u.last_name)) = unaccent(UPPER(?)) AND 
@@ -168,37 +186,21 @@ class ApiLlaveMXController extends Controller
                                             unaccent(UPPER(us.primer_apellido)) = unaccent(UPPER(?)) AND 
                                             unaccent(UPPER(us.segundo_apellido)) = unaccent(UPPER(?))
                                         )
-                                        ) AND u.deleted_at IS NULL AND u.activo = true",
-                                    [$correo_llavemx, $curp, $nombre, $apellido1, $apellido2, $nombre, $apellido1, $apellido2]);
-            }else{
-                $data = DB::select("SELECT u.id as user_id
-                                FROM public.users u
-                                LEFT JOIN public.usuarios_solicitudes us ON us.usuario_id = u.id
-                                INNER JOIN public.user_roles ur ON ur.user_id = u.id
-                                INNER JOIN public.roles r ON r.id = ur.role_id
-                                WHERE (UPPER(u.email) = UPPER(?) OR UPPER(us.curp) = UPPER(?) OR 
-                                    (
-                                        unaccent(UPPER(u.first_name)) = unaccent(UPPER(?)) AND 
-                                        unaccent(UPPER(u.last_name)) = unaccent(UPPER(?)) AND 
-                                        unaccent(UPPER(u.second_last_name)) = unaccent(UPPER(?))
-                                    ) OR 
-                                    (
-                                        unaccent(UPPER(us.nombre)) = unaccent(UPPER(?)) AND 
-                                        unaccent(UPPER(us.primer_apellido)) = unaccent(UPPER(?)) AND 
-                                        unaccent(UPPER(us.segundo_apellido)) = unaccent(UPPER(?))
-                                    )
-                                    ) AND u.deleted_at IS NULL AND u.activo = true AND r.name = 'representante_legal'",
-                                [$correo_llavemx, $curp, $nombre, $apellido1, $apellido2, $nombre, $apellido1, $apellido2]);
-            }
-            //Recuperando los ids de las cuentas de usuario encontradas
-            $users_id = array_map(fn($row) => $row->user_id, $data);
-            //Recuperando los usuarios
-            $users = User::whereIn('id',$users_id)->get();
-            if($users->count() > 0){
-                //Guardamos los users en la session 'cuentas'
-                Session::put('cuentas', implode(',', $users_id));
-                //Redireccionamos a una vista para que el usuario seleccione la cuenta con la que desea ingresar
-                return redirect()->route('llavemx.selector')->with('success', $message);
+                                        ) AND u.deleted_at IS NULL AND u.activo = true AND r.name = 'representante_legal'",
+                                    [$curp, $nombre, $apellido1, $apellido2, $nombre, $apellido1, $apellido2]);
+                }
+                //Recuperando los ids de las cuentas de usuario encontradas
+                $users_id = array_map(fn($row) => $row->user_id, $data);
+                //Recuperando los usuarios
+                $users = User::whereIn('id',$users_id)->get();
+                if($users->count() > 0){
+                    //Guardamos los users en la session 'cuentas'
+                    Session::put('cuentas', implode(',', $users_id));
+                    //Redireccionamos a una vista para que el usuario seleccione la cuenta con la que desea ingresar
+                    return redirect()->route('llavemx.selector')->with('success', $message);
+                }
+            }catch (Exception $e) {
+                return redirect()->back()->with('error', 'Ocurrio un error al registrar la cuenta:'.$correo.', inténtelo de nuevo.')->withInput();
             }
         }
         //Sino encuentra cuentas manda a la bandeja por default al rol
@@ -246,6 +248,13 @@ class ApiLlaveMXController extends Controller
             //Regresamos al login con error de obtención de datos del usuario
             return Redirect::to($this->home_login)->withErrors(['msg' => 'Error al obtener los datos del usuario desde LlaveMX. Inténtelo de nuevo.']);
         }
+
+        //Es posible generar al vuelo su CURP usando nombre(primer nombre 2 letras), primerApellido(2 letras), fechaNacimiento(YYMMDD), sexo(M o F) y esExtranjero(0 u 1) (ej. PEME901227F1) 
+        if(!isset($data_user['curp']) || empty($data_user['curp'])){
+            //Regresamos al login con error de obtención de CURP
+            return Redirect::to($this->home_login)->withErrors(['msg' => 'Es necesario que su cuenta Llave MX tenga CURP para poder registrar su usuario en la plataforma. Si tiene dudas o desea realizar una aclaración, comuníquese al siguiente correo: mesadeservicio@centrolaboral.gob.mx']);
+        }
+
         $data_morales = $llavemx_services->getPersonasMorales($token);
         //Registrar/Actualizar la info del usuario al core
         $core_user = $llavemx_services->storeDataAtCore($data_user, $data_morales);
@@ -302,7 +311,7 @@ class ApiLlaveMXController extends Controller
             $data = DB::select("SELECT u.id as user_id
                                 FROM public.users u
                                 LEFT JOIN public.usuarios_solicitudes us ON us.usuario_id = u.id
-                                WHERE (UPPER(u.email) = UPPER(?) OR UPPER(us.curp) = UPPER(?) OR 
+                                WHERE (UPPER(us.curp) = UPPER(?) OR 
                                     (
                                         unaccent(UPPER(u.first_name)) = unaccent(UPPER(?)) AND 
                                         unaccent(UPPER(u.last_name)) = unaccent(UPPER(?)) AND 
@@ -314,7 +323,7 @@ class ApiLlaveMXController extends Controller
                                         unaccent(UPPER(us.segundo_apellido)) = unaccent(UPPER(?))
                                     )
                                     ) AND u.deleted_at IS NULL AND u.activo = true",
-                                [$correo, $curp, $nombre, $apellido1, $apellido2, $nombre, $apellido1, $apellido2]);
+                                [$curp, $nombre, $apellido1, $apellido2, $nombre, $apellido1, $apellido2]);
         }else{
             //Recuperamos las cuentas de otros roles que no sean representante_legal para deshabilitarlas
             $data = DB::select("SELECT u.id as user_id
@@ -358,7 +367,7 @@ class ApiLlaveMXController extends Controller
                                 LEFT JOIN public.usuarios_solicitudes us ON us.usuario_id = u.id
                                 INNER JOIN public.user_roles ur ON ur.user_id = u.id
                                 INNER JOIN public.roles r ON r.id = ur.role_id
-                                WHERE (UPPER(u.email) = UPPER(?) OR UPPER(us.curp) = UPPER(?) OR 
+                                WHERE (UPPER(us.curp) = UPPER(?) OR 
                                     (
                                         unaccent(UPPER(u.first_name)) = unaccent(UPPER(?)) AND 
                                         unaccent(UPPER(u.last_name)) = unaccent(UPPER(?)) AND 
@@ -370,7 +379,7 @@ class ApiLlaveMXController extends Controller
                                         unaccent(UPPER(us.segundo_apellido)) = unaccent(UPPER(?))
                                     )
                                     ) AND u.deleted_at IS NULL AND u.activo = true AND r.name = 'representante_legal'",
-                                [$correo, $curp, $nombre, $apellido1, $apellido2, $nombre, $apellido1, $apellido2]);
+                                [$curp, $nombre, $apellido1, $apellido2, $nombre, $apellido1, $apellido2]);
         }
         //Recuperando los ids de las cuentas de usuario encontradas
         $users_id = array_map(fn($row) => $row->user_id, $data);
@@ -411,7 +420,7 @@ class ApiLlaveMXController extends Controller
             * Revisar si se tiene el atributo activo en el usuario para reactivarlo en caso de existir pero estar inactivo 
             * y actualizar sus datos
             */
-            $user = User::where('email',$correo)->where('activo',false)->first();
+            $user = User::whereRaw("email ilike '".$correo."'")->where('activo',false)->first();
             $bitacora_message = '';
             if (isset($user)){
                 //Reactivar el usuario

@@ -37,7 +37,7 @@ Modifique el composer.json del proyecto y añadir el repositorio del paquete DTI
 ```
 Ejecute el siguiente comando para instalar el paquete LlaveMX via Composer
 ``` shell
-composer require dticcfcrl/paquete-conexion-api-llave-mx-laravel:v0.2.20
+composer require dticcfcrl/paquete-conexion-api-llave-mx-laravel:v0.2.21
 ```
 
 ### Instalación desde el directorio local del repositorio (En caso de fallar la anterior)
@@ -82,6 +82,7 @@ Una vez instalado el paquete y que se han desplegado en el proyecto las vistas, 
 ``` shell
 npm run build
 ```
+> **Nota:** Sino reconoce el comando "build" use el comando "prod".
 - **Paso 2:**  Ajuste las variables .env (estan alginal del archivo e inician con LLAVE_XXXX) y limpiar la cache. 
 > **Nota:** Al instalar el paquete por primer vez, se agregan 19 variables al archivo .env que apoyan a la funcionalidad de LlaveMX. De esas variables solo debe ajustar las primeras 6 con los datos de la credencial de la aplicación para LlaveMX. 
 
@@ -104,13 +105,18 @@ LLAVE_CORE_CLIENT_SECRET=${CLIENT_SECRET}
 ``` shell
 php artisan config:clear
 ```
-- **Paso 3:** Ajuste la vista del login (resources/views/auth/login.blade.php) para cortar el login viejo e incluir el partial al login de LlaveMX.
+> **Nota:** Si en su entorno local se producen problemas de SSL por las urls del servidor local tanto de su aplicación como del core puede usar la variable LLAVE_VERIFY_SSL=false con lo cual se forza que Laravel no haga validaciones SSL al consumir servicios en el backend.
+- **Paso 3:** Ejecute las migraciones pendientes (se requiere la tabla access_token) para que se pueda guardar el token de acceso al core.
+``` shell
+php artisan migrate
+```
+- **Paso 4:** Ajuste la vista del login (resources/views/auth/login.blade.php) para cortar el login viejo e incluir el partial al login de LlaveMX.
 ``` php
 @include('llavemx.partials.login')
 ```
-- **Paso 4:** Guarde el login viejo en la vista login_old de LlaveMX (resources/views/llavemx/partials/login_old.blade.php).
+- **Paso 5:** Guarde el login viejo en la vista login_old de LlaveMX (resources/views/llavemx/partials/login_old.blade.php).
 > **Nota:** Si el partial login_old.blade.php tiene información favor de borrarla y colocar su script del login viejo. 
-- **Paso 5:** Modifique el controller ApiLlaveMXController (app/Http/Controller/ApiLlaveMXController.php) revisando y corrigiendo la variable $home_login al url del login, el query de búsqueda de usuarios acorde a la estructura de seguridad del proyecto así como la sección de rutas acorde al rol una vez que se ha autentificado el usuario.
+- **Paso 6:** Modifique el controller ApiLlaveMXController (app/Http/Controller/ApiLlaveMXController.php) revisando y corrigiendo la variable $home_login al url del login, el query de búsqueda de usuarios acorde a la estructura de seguridad del proyecto así como la sección de rutas acorde al rol una vez que se ha autentificado el usuario.
 > **Nota:** Para facilitar la edición del controller busque los comentarios que indican "MODIFICAR:".
 ``` php
 /*
@@ -125,16 +131,16 @@ private $home_login = '/';
 */
 $data = DB::select("SELECT u.id as user_id
                     FROM public.users u
-                    WHERE (UPPER(u.email) = UPPER(?) OR UPPER(u.curp) = UPPER(?) OR 
+                    WHERE (UPPER(u.curp) = UPPER(?) OR 
                         (
                             unaccent(UPPER(u.first_name)) = unaccent(UPPER(?)) AND 
                             unaccent(UPPER(u.last_name)) = unaccent(UPPER(?)) AND 
                             unaccent(UPPER(u.second_last_name)) = unaccent(UPPER(?))
                         )
                         )",
-                    [$correo, $curp, $nombre, $apellido1, $apellido2]);
+                    [$curp, $nombre, $apellido1, $apellido2]);
 ```
-> **Nota:** Elimine la referencia al controller UserController sino existe en su proyecto, así mismo los bloques de código que hacen referencia a él en las líneas 144 a 146.
+> **Nota:** Elimine la referencia al controller UserController sino existe en su proyecto, así mismo los bloques de código que hacen referencia a él en las líneas 144 a 146 usadas para notificar por correo electrónico la creación de una cuenta nueva y su validación.
 ``` php
 use App\Http\Controllers\UserController;
 ...
@@ -144,7 +150,7 @@ try {
     $message = 'Para continuar con tu registro, deberás confirmar tu correo electrónico dando clic en el enlace que te hemos enviado a "' . $correo . '".';
 } catch (Exception $e) {}
 ```
-- **Paso 6:** Registre en el route service provider (app/Providers/RouteServiceProvider.php) el archivo de las rutas LlaveMX.
+- **Paso 7:** Registre en el route service provider (app/Providers/RouteServiceProvider.php) el archivo de las rutas LlaveMX.
 ``` php
     public function map()
     {
@@ -168,7 +174,7 @@ Si no tiene el route service provider, favor de revisar si dispone de app (boots
                 ->prefix('llavemx')
                 ->group(base_path('routes/llavemx.php'));
 ```
-- **Paso 7:** Registre en el Composer el helper de LlaveMX (composer.json)
+- **Paso 8:** Registre en el Composer el helper de LlaveMX (composer.json)
 ``` bash
 ...
 "autoload": {
@@ -182,11 +188,11 @@ Ejecutar el siguiente comando después del cambio:
 ``` bash
 composer dump-autoload
 ```
-- **Paso 8:**  Desinstale el paquete LlaveMX. Al realizar esta acción las vistas, controladores, rutas, helpers y services de la funcionalidad de LlaveMX preconstruida permanecerán en el proyecto y facilitará su despliegue en producción sin dependencia del paquete.
+- **Paso 9:**  Desinstale el paquete LlaveMX. Al realizar esta acción las vistas, controladores, rutas, helpers y services de la funcionalidad de LlaveMX preconstruida permanecerán en el proyecto y facilitará su despliegue en producción sin dependencia del paquete.
 ``` bash
 composer remove dticcfcrl/paquete-conexion-api-llave-mx-laravel
 ```
-- **Paso 9:**  **(Si su proyecto soporta varias cuentas de usuario y tiene un menú superior)** Ajuste el header para agregar en el menú la opción de "Cambiar de cuenta" si se detecta que tiene varios roles (Ej. resources/view/layouts/admin_header.blade.php y resources/view/layouts/header.blade.php).
+- **Paso 10:**  **(Si su proyecto soporta varias cuentas de usuario y tiene un menú superior)** Ajuste el header para agregar en el menú la opción de "Cambiar de cuenta" si se detecta que tiene varios roles (Ej. resources/view/layouts/admin_header.blade.php y resources/view/layouts/header.blade.php).
 ``` php
 @if (Session::get('cuentas') !== null)
     <a class="dropdown-item-custom" id="custom-selector" href="{{ route('llavemx.selector') }}">
@@ -212,7 +218,7 @@ composer remove dticcfcrl/paquete-conexion-api-llave-mx-laravel
     </a>
 @endif
 ```
-- **Paso 10:**  **(Si su proyecto permite crear cuentas de usuario y tiene un menú superior)** Ajuste el header para agregar en el menú la opción de "Registrar cuenta" (Ej. resources/view/layouts/admin_header.blade.php y resources/view/layouts/header.blade.php).
+- **Paso 11:**  **(Si su proyecto permite crear cuentas de usuario y tiene un menú superior)** Ajuste el header para agregar en el menú la opción de "Registrar cuenta" (Ej. resources/view/layouts/admin_header.blade.php y resources/view/layouts/header.blade.php).
 ``` php
 <a class="dropdown-item-custom" id="custom-new-account" href="" data-toggle="modal" data-target="#newAccountModal">
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 100 125">

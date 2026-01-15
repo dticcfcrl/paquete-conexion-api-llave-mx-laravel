@@ -114,7 +114,7 @@ class IntegrationToolsServiceProvider extends ServiceProvider
         $source = __DIR__.'/app/Http/Controllers';
         $destination = base_path('app/Http/Controllers');
         (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
-        /*
+        
         //Models
         $source = __DIR__.'/app/Models';
         $destination = base_path('app/Models');
@@ -123,7 +123,7 @@ class IntegrationToolsServiceProvider extends ServiceProvider
         $source = __DIR__.'/database/migrations';   
         $destination = base_path('database/migrations');
         (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
-        */
+        
         //Services
         $source = __DIR__.'/app/Services';
         $destination = base_path('app/Services');
@@ -145,7 +145,7 @@ class IntegrationToolsServiceProvider extends ServiceProvider
         $destination = base_path('routes');
         (new \Illuminate\Filesystem\Filesystem)->copyDirectory($source, $destination);
     }
-
+    
     private function registerPublishing()
     {
         if ($this->app->runningInConsole()) {
