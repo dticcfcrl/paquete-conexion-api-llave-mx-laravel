@@ -90,7 +90,7 @@ class LlaveMXService
      */
     public function registerUserInCore($form_params, $token = '')
     {
-        $token = $token == '' ? $this->token : $token;
+        $token = $token == '' ? $this->token_core : $token;
 
         try {
             $response = $this->http->post($this->url_core.'api/usuarios/registro', [
